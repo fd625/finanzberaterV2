@@ -1,0 +1,25 @@
+{
+  "name": "finanzberater",
+  "private": true,
+  "version": "0.0.0",
+  "main": "src/electron/main.js",
+  "scripts": {
+    "dev": "vite",
+    "electron": "electron .",
+    "build": "vite build",
+    "dist": "electron-builder"
+  },
+  "dependencies": {
+    "primeicons": "^7.0.0",
+    "primevue": "^4.3.9",
+    "vue": "^3.5.18",
+    "vue-router": "^4.5.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.1",
+    "electron": "^38.1.0",
+    "electron-builder": "^26.0.12",
+    "sass-embedded": "^1.92.1",
+    "vite": "^7.1.2"
+  }
+}
