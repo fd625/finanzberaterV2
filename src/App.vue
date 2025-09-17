@@ -1,21 +1,32 @@
 <template>
   <div class="app">
-    <HeaderNav class="header"/>
+    <HeaderNavigation class="header" @navigate="x => navigate(x)" />
+    <Home v-if="view == 'Home'" />
+    <Calendar v-else-if="view == 'Calendar'" />
   </div>
 </template>
 
 <script>
-import HeaderNav from './components/HeaderNav.vue';
+import HeaderNavigation from './components/HeaderNavigation.vue';
+import Calendar from './Views/Calendar.vue';
+import Home from './Views/Home.vue';
 
 export default {
   name: 'App',
   data() {
     return {
-      
+      view: "Home"
     }
   },
   components: {
-    HeaderNav
+    HeaderNavigation,
+    Home,
+    Calendar
+  },
+  methods: {
+    navigate(to) {
+      this.view = to;
+    }
   }
 }
 </script>
