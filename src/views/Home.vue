@@ -6,10 +6,36 @@
         </div>
         <div class="home-table">
             
-        <DataTable :value="contracts" scrollable scrollHeight="400px">
-            <Column field="company" header="Company" footer="Company" style="min-width: 200px"></Column>
-            <Column field="date" header="Date" footer="Date" style="min-width: 200px"></Column>
-            <Column field="balance" header="Balance" footer="Balance" style="min-width: 200px"></Column>
+        <DataTable 
+            :value="contracts" 
+            scrollable 
+            scrollHeight="400px" 
+            paginator 
+            :rows="5" 
+            :rowsPerPageOptions="[5, 10, 20, 50]"
+            filterDisplay="menu"
+            :globalFilterFields="['company', 'date', 'balance']">
+            <Column 
+                field="company" 
+                header="Company" 
+                footer="Company" 
+                style="min-width: 200px" 
+                sortable >
+            </Column>
+            <Column 
+                field="date" 
+                header="Date" 
+                footer="Date" 
+                style="min-width: 200px" 
+                sortable >
+            </Column>
+            <Column 
+                field="balance" 
+                header="Balance" 
+                footer="Balance" 
+                style="min-width: 200px" 
+                sortable >
+            </Column>
         </DataTable>
         </div>
 
@@ -73,5 +99,25 @@ export default {
             }
         }
     }
+}
+.p-datatable-column-header-content,.p-datatable-tbody > tr > td {
+ padding: 20px 0 !important;
+}
+.p-datatable-column-title {
+    padding-right: 15px;
+}
+.p-paginator {
+    padding: 15px 0 !important;
+}
+.p-datatable-paginator-bottom {
+    margin-top: 26px;
+    border: 1px solid grey !important;
+    border-radius: 7px;
+}
+.p-paginator-page, .p-paginator-next, .p-paginator-last, .p-paginator-first, .p-paginator-prev {
+    padding: 10px !important;
+}
+.p-select-dropdown {
+    padding-left: 13px;
 }
 </style>

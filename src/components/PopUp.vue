@@ -3,32 +3,39 @@
         <div class="popup__container">
             <slot name="header">
                 <div class="popup__container__header">
+                    <div class="popup__container__header__label" v-if="label">
+                        {{ label }}
+                    </div>
                     <i class="popup__container__header__close pi pi-times" @click="this.$emit('close-popup')"></i>
                 </div>
             </slot>
+            <slot name="form">
+    
+            </slot>
+            <slot name="footer">
+                <div class="popup__container__footer">
+                    <button class="popup__container__footer__button --close" @click="$emit('close-popup')">
+                        Abbrechen
+                    </button>
+                    <button class="popup__container__footer__button --submit" @click="$emit('submit')">
+                       {{ submitHeadline }}
+                    </button>
+                </div>
+            </slot>
         </div>
-        <slot name="form">
-
-        </slot>
-        <slot name="footer">
-            <div class="popup__container__footer">
-                <button class="popup__container__footer__button --close">Abbrechen</button>
-                <button class="popup__container__footer__button --submit">Hinzufügen</button>
-            </div>
-        </slot>
     </div>
 </template>
 
 <script>
-
 export default {
     data() {
         return {
 
         }
     },
-    methods: {
-      
+    props: {
+        label: String,
+        submitHeadline: String
     }
 }
 </script>
@@ -47,17 +54,25 @@ export default {
     align-items: center;
     transition: opacity 0.3s ease;
     &__container {
-        height: 500px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 370px;
         border-radius: 20px;
         width: 400px;
         margin: 0px auto;
-        padding: 20px 30px;
+        padding: 34px;
         background-color: #fff;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
         transition: all 0.3s ease;
         font-family: Helvetica, Arial, sans-serif;
         &__header {
-            direction: rtl;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            &__label {
+                font-size: 21px;
+            }
             &__close {
                 color: #d90202;
                 &:hover {
@@ -67,7 +82,26 @@ export default {
             }
         }
         &__footer {
+            display: flex;
             justify-content: space-between;
+            margin-top: 15px;
+            &__button {
+                padding: 10px 15px;
+                border: none;
+                border-radius: 5px;
+                &:hover {
+                    cursor: pointer;
+                    box-shadow: 0 0 5px grey;
+                }
+                &.--close {
+                    background-color: #8b0000;
+                    color: white;
+                }
+                &.--submit {
+                    background-color: green;
+                    color: white;
+                }
+            }
         }
     }
 }

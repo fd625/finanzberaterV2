@@ -8,26 +8,49 @@
     
             </div>
             <div class="header__user-button">
-                <i class="header__user-button__icon pi pi-user"></i>
+                <i class="header__user-button__icon pi pi-user" @click="showLoginModal = true"></i>
             </div>
         </div>
+
+        <pop-up-login 
+            @close-popup="showLoginModal = false" 
+            v-if="showLoginModal"
+            @register="register()">
+        </pop-up-login>
+
+        <pop-up-register 
+            v-if="showRegisterModal" 
+            @close-popup="showRegisterModal = false">
+        </pop-up-register>
     </div>
 </template>
 
 <script>
 import logo from "../assets/logo.png";
 import 'primeicons/primeicons.css'
+import PopUpLogin from "./PopUp-Login.vue";
+import PopUpRegister from "./PopUp-Register.vue";
 
 export default {
     name: "HeaderNav",
     data() {
         return {
-            logoPng: logo
+            logoPng: logo,
+            showLoginModal: false,
+            showRegisterModal: false
         }
+    },
+    components: {
+        PopUpLogin,
+        PopUpRegister
     },
     methods: {
         navigate(to) {
             this.$emit('navigate', to);
+        },
+        register() {
+            this.showLoginModal = false;
+            this.showRegisterModal = true;
         }
     }
 }
