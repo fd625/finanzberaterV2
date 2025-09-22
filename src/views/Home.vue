@@ -20,78 +20,99 @@
 
             <div v-if="userProfile && userProfile.salary" class="salary-info">
                 <div class="salary-card">
-                    <h3>Ihr monatliches Gehalt</h3>
-                    <div class="salary-amount">{{ formatCurrency(userProfile.salary) }}</div>
+                    <h3>Ihr monatliches Restgehalt</h3>
+                    <div class="salary-amount">{{ formatCurrency(userProfile.salary - amountSum) }}</div>
                 </div>
             </div>
             
             <div class="home-table">
-    <DataTable 
-        :value="contracts" 
-        scrollable 
-        scrollHeight="400px" 
-        paginator 
-        :rows="5" 
-        :rowsPerPageOptions="[5, 10, 20, 50]"
-        filterDisplay="menu"
-        :globalFilterFields="['company', 'description', 'date', 'amount']">
-        
-        <Column 
-            field="company" 
-            header="Unternehmen"
-            style="min-width: 150px" 
-            sortable>
-        </Column>
-        
-        <Column 
-            field="description" 
-            header="Beschreibung" 
-            style="min-width: 200px" 
-            sortable>
-            <template #body="slotProps">
-                {{ slotProps.data.description || '-' }}
-            </template>
-        </Column>
-        
-        <Column 
-            field="date" 
-            header="Startdatum" 
-            style="min-width: 120px" 
-            sortable>
-        </Column>
-        
-        <Column 
-            field="amount" 
-            header="Betrag" 
-            style="min-width: 120px" 
-            sortable>
-            <template #body="slotProps">
-                {{ formatCurrency(slotProps.data.amount) }}
-            </template>
-        </Column>
-        
-        <Column 
-            field="scheduled_payment" 
-            header="Abbuchung" 
-            style="min-width: 100px" 
-            sortable>
-            <template #body="slotProps">
-                {{ slotProps.data.scheduled_payment }}. des Monats
-            </template>
-        </Column>
-        
-        <Column header="Aktionen" style="min-width: 120px">
-            <template #body="slotProps">
-                <button 
-                    class="action-btn delete-btn" 
-                    @click="deleteContract(slotProps.data.id)"
-                    title="Vertrag löschen">
-                    <i class="pi pi-trash"></i>
-                </button>
-            </template>
-        </Column>
-    </DataTable>
-</div>
+                <DataTable 
+                    :value="contracts" 
+                    scrollable 
+                    scrollHeight="400px" 
+                    paginator 
+                    :loading="loading"
+                    v-model:filters="filters"
+                    :rows="5" 
+                    :rowsPerPageOptions="[5, 10, 20, 50]"
+                    filterDisplay="menu"
+                    :globalFilterFields="['company', 'description', 'date', 'amount','scheduled_payment', ]">
+                    
+                    <template #header>
+                        <div class="flex justify-between home-table__header">
+                            <Button 
+                                type="button" 
+                                icon="pi pi-filter-slash" 
+                                label="Clear" 
+                                variant="outlined" 
+                                @click="clearFilter()" 
+                            />
+                                <InputText 
+                                    v-model="filters['global'].value" 
+                                    placeholder="Suche..." 
+                                    style="width: 30% !important; margin: 0 !important;"
+                                />
+                        </div>
+                    </template>
+                    <template #empty> Keine Verträge gefunden. </template>
+                    <template #loading> Verträge werden geladen. Bitte warten. </template>
+                     
+                    <Column 
+                        field="company" 
+                        header="Unternehmen"
+                        style="min-width: 150px" 
+                        sortable>
+                    </Column>
+                    
+                    <Column 
+                        field="description" 
+                        header="Beschreibung" 
+                        style="min-width: 200px" 
+                        sortable>
+                        <template #body="slotProps">
+                            {{ slotProps.data.description || '-' }}
+                        </template>
+                    </Column>
+                    
+                    <Column 
+                        field="date" 
+                        header="Startdatum" 
+                        style="min-width: 120px" 
+                        sortable>
+                    </Column>
+                    
+                    <Column 
+                        field="amount" 
+                        header="Betrag" 
+                        style="min-width: 120px" 
+                        sortable>
+                        <template #body="slotProps">
+                            {{ formatCurrency(slotProps.data.amount) }}
+                        </template>
+                    </Column>
+                    
+                    <Column 
+                        field="scheduled_payment" 
+                        header="Abbuchung" 
+                        style="min-width: 100px" 
+                        sortable>
+                        <template #body="slotProps">
+                            {{ slotProps.data.scheduled_payment }}. des Monats
+                        </template>
+                    </Column>
+                    
+                    <Column header="Aktionen" style="min-width: 120px">
+                        <template #body="slotProps">
+                            <button 
+                                class="action-btn delete-btn" 
+                                @click="deleteContract(slotProps.data.id)"
+                                title="Vertrag löschen">
+                                <i class="pi pi-trash"></i>
+                            </button>
+                        </template>
+                    </Column>
+                </DataTable>
+            </div>
 
             <popup-add-contract 
                 v-if="showPopUp" 
@@ -109,6 +130,11 @@ import ColumnGroup from 'primevue/columngroup';
 import Row from 'primevue/row';      
 import PopupAddContract from '../PopUps/Popup-AddContract.vue';
 import { supabase } from '../database.js';
+import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
+import IconField from 'primevue/iconfield';
+import InputIcon from 'primevue/inputicon';
+import InputText from 'primevue/inputtext';
+import Button from 'primevue/button';
 
 export default {
     name: 'Home',
@@ -122,7 +148,9 @@ export default {
         return {
             showPopUp: false, 
             contracts: [],
-            userProfile: null
+            userProfile: null,
+            filters: null,
+            amountSum: 0
         }
     },
     components: {
@@ -130,7 +158,11 @@ export default {
         Column,
         ColumnGroup,
         Row,
-        PopupAddContract
+        PopupAddContract,
+        IconField,
+        InputIcon,
+        InputText,
+        Button
     },
     watch: {
         user: {
@@ -145,110 +177,150 @@ export default {
             immediate: true
         }
     },
+    created() {
+        this.initFilters();
+    },
     methods: {
-    async loadUserData() {
-        if (!this.user) return;
-        
-        try {
-            // Load user profile
-            const { data: profile, error: profileError } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', this.user.id)
-                .single();
+        async loadUserData() {
+            if (!this.user) return;
             
-            if (profileError && profileError.code !== 'PGRST116') {
-                console.error('Error loading user profile:', profileError);
-            } else if (profile) {
-                this.userProfile = profile;
+            try {
+                // Load user profile
+                const { data: profile, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', this.user.id)
+                    .single();
+                
+                if (profileError && profileError.code !== 'PGRST116') {
+                    console.error('Error loading user profile:', profileError);
+                } else if (profile) {
+                    this.userProfile = profile;
+                }
+                
+                // Load user contracts from database
+                await this.loadContracts();
+                
+            } catch (error) {
+                console.error('Error loading user data:', error);
             }
-            
-            // Load user contracts from database
-            await this.loadContracts();
-            
-        } catch (error) {
-            console.error('Error loading user data:', error);
-        }
-    },
-    
-    async loadContracts() {
-        if (!this.user) return;
+        },
         
-        try {
-            const { data: contracts, error } = await supabase
-                .from('contracts')
-                .select('*')
-                .eq('user_id', this.user.id)
-                .order('created_at', { ascending: false });
+        async loadContracts() {
+            if (!this.user) return;
             
-            if (error) {
+            try {
+                const { data: contracts, error } = await supabase
+                    .from('contracts')
+                    .select('*')
+                    .eq('user_id', this.user.id)
+                    .order('created_at', { ascending: false });
+                
+                if (error) {
+                    console.error('Error loading contracts:', error);
+                } else {
+                    // Format contracts for display
+                    this.contracts = contracts.map(contract => ({
+                        ...contract,
+                        // Format date for display
+                        date: this.formatDisplayDate(contract.start_date),
+                        // Keep original for other uses
+                        start_date: contract.start_date,
+                        end_date: contract.end_date
+                    }));
+                    this.contracts.forEach(x => {
+                        this.amountSum += x.amount;
+                    })
+                    console.log("amount sum",this.amountSum);
+                }
+                
+            } catch (error) {
                 console.error('Error loading contracts:', error);
-            } else {
-                // Format contracts for display
-                this.contracts = contracts.map(contract => ({
-                    ...contract,
-                    // Format date for display
-                    date: this.formatDisplayDate(contract.start_date),
-                    // Keep original for other uses
-                    start_date: contract.start_date,
-                    end_date: contract.end_date
-                }));
+            }
+        },
+        
+        formatDisplayDate(dateString) {
+            if (!dateString) return '';
+            
+            const date = new Date(dateString);
+            return date.toLocaleDateString('de-DE', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            });
+        },
+        
+        formatCurrency(amount) {
+            return new Intl.NumberFormat('de-DE', {
+                style: 'currency',
+                currency: 'EUR'
+            }).format(amount);
+        },
+        
+        async addContract(newContract) {
+            // Refresh contracts list after adding
+            await this.loadContracts();
+        },
+        
+        async deleteContract(contractId) {
+            if (!confirm('Möchten Sie diesen Vertrag wirklich löschen?')) {
+                return;
             }
             
-        } catch (error) {
-            console.error('Error loading contracts:', error);
-        }
-    },
-    
-    formatDisplayDate(dateString) {
-        if (!dateString) return '';
-        
-        const date = new Date(dateString);
-        return date.toLocaleDateString('de-DE', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit'
-        });
-    },
-    
-    formatCurrency(amount) {
-        return new Intl.NumberFormat('de-DE', {
-            style: 'currency',
-            currency: 'EUR'
-        }).format(amount);
-    },
-    
-    async addContract(newContract) {
-        // Refresh contracts list after adding
-        await this.loadContracts();
-    },
-    
-    async deleteContract(contractId) {
-        if (!confirm('Möchten Sie diesen Vertrag wirklich löschen?')) {
-            return;
-        }
-        
-        try {
-            const { error } = await supabase
-                .from('contracts')
-                .delete()
-                .eq('id', contractId)
-                .eq('user_id', this.user.id); // Extra security check
-            
-            if (error) {
+            try {
+                const { error } = await supabase
+                    .from('contracts')
+                    .delete()
+                    .eq('id', contractId)
+                    .eq('user_id', this.user.id); // Extra security check
+                
+                if (error) {
+                    console.error('Error deleting contract:', error);
+                    alert('Fehler beim Löschen des Vertrags.');
+                } else {
+                    // Refresh the contracts list
+                    await this.loadContracts();
+                }
+                
+            } catch (error) {
                 console.error('Error deleting contract:', error);
                 alert('Fehler beim Löschen des Vertrags.');
-            } else {
-                // Refresh the contracts list
-                await this.loadContracts();
             }
-            
-        } catch (error) {
-            console.error('Error deleting contract:', error);
-            alert('Fehler beim Löschen des Vertrags.');
+        },
+        clearFilter() {
+            this.initFilters();
+        },
+        initFilters() {
+            this.filters = {
+                global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+
+                company: { 
+                    operator: FilterOperator.AND, 
+                    constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] 
+                },
+
+                description: { 
+                    operator: FilterOperator.AND, 
+                    constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }] 
+                },
+
+                date: { 
+                    operator: FilterOperator.AND, 
+                    constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] 
+                },
+
+                amount: { 
+                    operator: FilterOperator.AND, 
+                    constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] 
+                },
+
+                scheduled_payment: { 
+                    operator: FilterOperator.AND, 
+                    constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] 
+                }
+            };
         }
     }
-}
 }
 </script>
 
@@ -275,7 +347,13 @@ export default {
             margin-top: 20px;
         }
     }
-    
+    &-table {
+        &__header {
+            flex-direction: row;
+            display: flex;
+            justify-content: space-between;
+        }
+    }
     &__header {
         display: flex;
         justify-content: space-between;
@@ -310,7 +388,6 @@ export default {
     }
     
     .salary-info {
-        margin-bottom: 30px;
         
         .salary-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
