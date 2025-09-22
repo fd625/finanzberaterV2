@@ -37,8 +37,8 @@
 <script>
 import logo from "../assets/logo.png";
 import 'primeicons/primeicons.css'
-import PopUpLogin from "./PopUp-Login.vue";
-import PopUpRegister from "./PopUp-Register.vue";
+import PopUpLogin from "../PopUps/PopUp-Login.vue";
+import PopUpRegister from "../PopUps/PopUp-Register.vue";
 import { supabase } from '../database.js';
 
 export default {

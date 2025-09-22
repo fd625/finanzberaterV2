@@ -38,8 +38,7 @@
         
         <Column 
             field="company" 
-            header="Unternehmen" 
-            footer="Unternehmen" 
+            header="Unternehmen"
             style="min-width: 150px" 
             sortable>
         </Column>
@@ -47,7 +46,6 @@
         <Column 
             field="description" 
             header="Beschreibung" 
-            footer="Beschreibung" 
             style="min-width: 200px" 
             sortable>
             <template #body="slotProps">
@@ -58,7 +56,6 @@
         <Column 
             field="date" 
             header="Startdatum" 
-            footer="Startdatum" 
             style="min-width: 120px" 
             sortable>
         </Column>
@@ -66,7 +63,6 @@
         <Column 
             field="amount" 
             header="Betrag" 
-            footer="Betrag" 
             style="min-width: 120px" 
             sortable>
             <template #body="slotProps">
@@ -77,7 +73,6 @@
         <Column 
             field="scheduled_payment" 
             header="Abbuchung" 
-            footer="Abbuchung" 
             style="min-width: 100px" 
             sortable>
             <template #body="slotProps">
@@ -112,7 +107,7 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import ColumnGroup from 'primevue/columngroup';   
 import Row from 'primevue/row';      
-import PopupAddContract from '../components/Popup-AddContract.vue';
+import PopupAddContract from '../PopUps/Popup-AddContract.vue';
 import { supabase } from '../database.js';
 
 export default {
