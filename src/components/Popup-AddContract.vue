@@ -222,7 +222,6 @@ export default {
         },
         
         getErrorMessage(error) {
-            // Convert common errors to German
             if (error.message) {
                 if (error.message.includes('unique constraint')) {
                     return 'Ein ähnlicher Vertrag existiert bereits.';
@@ -237,7 +236,6 @@ export default {
         },
         
         showSuccessMessage() {
-            // You could implement a toast notification here
             console.log('Contract added successfully!');
         },
         

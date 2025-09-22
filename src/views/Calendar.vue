@@ -1,6 +1,5 @@
 <template>
     <div class="calendar-container">
-        <!-- Show login prompt if not logged in -->
         <div v-if="!user" class="login-prompt">
             <h2>Kalender</h2>
             <p>Bitte melden Sie sich an, um Ihre Termine zu sehen.</p>
@@ -9,7 +8,6 @@
             </div>
         </div>
         
-        <!-- Show calendar if logged in -->
         <div v-else>
             <div class="calendar-header">
                 <div class="headline">Kalender</div>
@@ -47,7 +45,6 @@
                 </template>
             </CalendarView>
             
-            <!-- Add Event Modal -->
             <div v-if="showAddEventModal" class="modal-overlay" @click="closeAddEventModal">
                 <div class="event-modal" @click.stop>
                     <h3>Neuen Termin hinzufügen</h3>
@@ -144,7 +141,6 @@ export default {
         return { currentDate, onDateChange, onEventClick };
     },
     mounted() {
-        // Check auth state when component mounts
         this.checkAuthState();
     },
     watch: {
@@ -162,7 +158,6 @@ export default {
     },
     methods: {
         checkAuthState() {
-            // Double-check auth state when component mounts
             console.log('Calendar - Checking auth state, user prop:', this.user);
         },
         

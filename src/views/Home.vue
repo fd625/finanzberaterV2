@@ -1,6 +1,5 @@
 <template>
     <div class="home">
-        <!-- Show login prompt if not logged in -->
         <div v-if="!user" class="login-prompt">
             <h2>Willkommen bei Finanzen Manager</h2>
             <p>Bitte melden Sie sich an, um Ihre Finanzen zu verwalten.</p>
@@ -9,7 +8,6 @@
             </div>
         </div>
         
-        <!-- Show content if logged in -->
         <div v-else>
             <div class="home__header">
                 <div class="headline">
@@ -19,7 +17,7 @@
                 <button class="home__header__button" @click="showPopUp = true">Hinzufügen</button>
             </div>
             
-            <!-- Show user's salary info if available -->
+
             <div v-if="userProfile && userProfile.salary" class="salary-info">
                 <div class="salary-card">
                     <h3>Ihr monatliches Gehalt</h3>

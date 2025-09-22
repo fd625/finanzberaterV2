@@ -5,6 +5,7 @@
             <div class="header__navigation">
                 <div class="header__navigation__item" @click="navigate('Home')">Finanzen</div>
                 <div class="header__navigation__item" @click="navigate('Calendar')">Kalendar</div>
+                <div v-if="user" class="header__navigation__item" @click="navigate('Profile')">Profil</div>
             </div>
             <div class="header__user-section">
                 <!-- Show user info if logged in -->

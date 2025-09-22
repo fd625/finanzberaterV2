@@ -36,6 +36,7 @@ export default {
   },
   methods: {
     navigate(to) {
+      console.log('Navigating to:', to, 'Current user:', this.currentUser);
       this.view = to;
     },
     handleUserChanged(user) {
