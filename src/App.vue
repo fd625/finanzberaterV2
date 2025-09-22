@@ -13,6 +13,10 @@
       v-else-if="view == 'Calendar'" 
       :user="currentUser" 
     />
+    <Profile 
+      v-else-if="view == 'Profile'" 
+      :user="currentUser" 
+    />
   </div>
 </template>
 
@@ -20,6 +24,7 @@
 import HeaderNavigation from './components/HeaderNavigation.vue';
 import Calendar from './Views/Calendar.vue';
 import Home from './Views/Home.vue';
+import Profile from './Views/Profile.vue';
 
 export default {
   name: 'App',
@@ -32,7 +37,8 @@ export default {
   components: {
     HeaderNavigation,
     Home,
-    Calendar
+    Calendar,
+    Profile
   },
   methods: {
     navigate(to) {
