@@ -1,6 +1,5 @@
 <template>
     <div class="profile">
-        <!-- Show login prompt if not logged in -->
         <div v-if="!user" class="login-prompt">
             <h2>Profil</h2>
             <p>Bitte melden Sie sich an, um Ihr Profil zu bearbeiten.</p>
@@ -9,7 +8,6 @@
             </div>
         </div>
         
-        <!-- Show profile content if logged in -->
         <div v-else class="profile-content">
             <div class="profile__header">
                 <div class="headline">Mein Profil</div>
@@ -19,10 +17,8 @@
                 </div>
             </div>
             
-            <!-- Profile Settings Cards -->
             <div class="profile-cards">
                 
-                <!-- Basic Information Card -->
                 <div class="profile-card">
                     <h3>
                         <i class="pi pi-user"></i>
@@ -87,7 +83,6 @@
                     </div>
                 </div>
                 
-                <!-- Password Change Card -->
                 <div class="profile-card">
                     <h3>
                         <i class="pi pi-lock"></i>
@@ -147,7 +142,6 @@
                     </div>
                 </div>
                 
-                <!-- Account Actions Card -->
                 <div class="profile-card danger-card">
                     <h3>
                         <i class="pi pi-exclamation-triangle"></i>
@@ -184,7 +178,6 @@ export default {
         return {
             userProfile: null,
             
-            // Basic info editing
             editingBasic: false,
             loadingBasic: false,
             basicError: null,
@@ -193,7 +186,6 @@ export default {
                 salary: null
             },
             
-            // Password changing
             changingPassword: false,
             loadingPassword: false,
             passwordError: null,
@@ -255,7 +247,6 @@ export default {
             }).format(amount);
         },
         
-        // Basic Info Editing
         startEditingBasic() {
             this.editBasic.username = this.userProfile?.username || '';
             this.editBasic.salary = this.userProfile?.salary || null;
@@ -272,7 +263,6 @@ export default {
         async saveBasicInfo() {
             this.basicError = null;
             
-            // Validation
             if (!this.editBasic.username.trim()) {
                 this.basicError = 'Benutzername ist erforderlich.';
                 return;
@@ -312,7 +302,6 @@ export default {
             }
         },
         
-        // Password Changing
         startChangingPassword() {
             this.changingPassword = true;
             this.passwordError = null;
@@ -331,7 +320,6 @@ export default {
             this.passwordError = null;
             this.passwordSuccess = null;
             
-            // Validation
             if (!this.passwordData.newPassword) {
                 this.passwordError = 'Neues Passwort ist erforderlich.';
                 return;
@@ -358,7 +346,6 @@ export default {
                 
                 this.passwordSuccess = 'Passwort erfolgreich geändert!';
                 
-                // Auto-close after success
                 setTimeout(() => {
                     this.cancelChangingPassword();
                 }, 2000);
@@ -371,7 +358,6 @@ export default {
             }
         },
         
-        // Account Deletion
         confirmDeleteAccount() {
             const confirmed = confirm(
                 'WARNUNG: Sind Sie sicher, dass Sie Ihr Konto löschen möchten? ' +

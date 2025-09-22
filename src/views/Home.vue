@@ -1,7 +1,7 @@
 <template>
     <div class="home">
         <div v-if="!user" class="login-prompt">
-            <h2>Willkommen bei Finanzen Manager</h2>
+            <h2>Willkommen bei Subvision</h2>
             <p>Bitte melden Sie sich an, um Ihre Finanzen zu verwalten.</p>
             <div class="login-prompt__icon">
                 <i class="pi pi-lock" style="font-size: 4rem; color: #ccc;"></i>
@@ -150,7 +150,6 @@ export default {
         if (!this.user) return;
         
         try {
-            // Load user profile
             const { data: profile, error: profileError } = await supabase
                 .from('profiles')
                 .select('*')
@@ -163,7 +162,6 @@ export default {
                 this.userProfile = profile;
             }
             
-            // Load user contracts from database
             await this.loadContracts();
             
         } catch (error) {
@@ -184,12 +182,9 @@ export default {
             if (error) {
                 console.error('Error loading contracts:', error);
             } else {
-                // Format contracts for display
                 this.contracts = contracts.map(contract => ({
                     ...contract,
-                    // Format date for display
                     date: this.formatDisplayDate(contract.start_date),
-                    // Keep original for other uses
                     start_date: contract.start_date,
                     end_date: contract.end_date
                 }));
@@ -219,7 +214,6 @@ export default {
     },
     
     async addContract(newContract) {
-        // Refresh contracts list after adding
         await this.loadContracts();
     },
     
@@ -233,13 +227,12 @@ export default {
                 .from('contracts')
                 .delete()
                 .eq('id', contractId)
-                .eq('user_id', this.user.id); // Extra security check
+                .eq('user_id', this.user.id);
             
             if (error) {
                 console.error('Error deleting contract:', error);
                 alert('Fehler beim Löschen des Vertrags.');
             } else {
-                // Refresh the contracts list
                 await this.loadContracts();
             }
             
@@ -350,7 +343,6 @@ export default {
     }
 }
 
-// Keep existing PrimeVue styles
 .p-datatable-column-header-content,.p-datatable-tbody > tr > td {
  padding: 20px 0 !important;
 }

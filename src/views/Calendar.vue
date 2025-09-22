@@ -87,13 +87,6 @@
             </div>
         </div>
     </div>
-    <div style="background: yellow; padding: 10px; margin: 10px;">
-    DEBUG: User prop = {{ user ? 'USER EXISTS' : 'NO USER' }}
-    <br>
-    User ID: {{ user?.id }}
-    <br>
-    User Email: {{ user?.email }}
-</div>
 </template>
 
 <script>
@@ -164,8 +157,6 @@ export default {
         loadUserEvents() {
             if (!this.user) return;
             
-            // Sample user-specific events
-            // In a real app, you'd load these from your database
             this.userEvents = [
                 { 
                     title: 'Gehalt',
@@ -256,7 +247,6 @@ export default {
             this.userEvents.push(newEvent);
             this.closeAddEventModal();
             
-            // Here you would normally save to your database
             console.log('New event added:', newEvent);
         }
     }
@@ -323,7 +313,6 @@ export default {
 }
 
 .theme-default {
-    /* default theme styles are imported; you can override */
 }
 
 .my-event {
