@@ -9,12 +9,10 @@
         >
             <template v-slot:form>
                 <div class="login__popup__container">
-                    <!-- Show error message if exists -->
                     <div v-if="error" class="error-message">
                         {{ error }}
                     </div>
                     
-                    <!-- Show loading state -->
                     <div v-if="loading" class="loading-message">
                         Registrierung läuft...
                     </div>
@@ -85,10 +83,8 @@ export default {
         async register() {
             console.log("Register method called");
             
-            // Clear previous error
             this.error = null;
             
-            // Validate inputs
             if (!this.email || !this.username || !this.password) {
                 this.error = "Bitte füllen Sie alle Pflichtfelder aus.";
                 return;
@@ -99,7 +95,6 @@ export default {
                 return;
             }
             
-            // Validate email format
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(this.email)) {
                 this.error = "Bitte geben Sie eine gültige E-Mail-Adresse ein.";
@@ -136,15 +131,12 @@ export default {
                 if (data.user) {
                     console.log("Registration successful:", data.user);
                     
-                    // Check if email confirmation is required
                     if (!data.session) {
                         this.error = "Registrierung erfolgreich! Bitte überprüfen Sie Ihre E-Mail für die Bestätigung.";
-                        // Don't close popup immediately so user can see the message
                         setTimeout(() => {
                             this.$emit('close-popup');
                         }, 3000);
                     } else {
-                        // Registration successful and user is logged in
                         alert("Registrierung erfolgreich!");
                         this.$emit('close-popup');
                     }
@@ -159,7 +151,6 @@ export default {
         },
         
         getErrorMessage(error) {
-            // Convert common Supabase errors to German
             switch (error.message) {
                 case 'User already registered':
                     return 'Diese E-Mail-Adresse ist bereits registriert.';

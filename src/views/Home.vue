@@ -1,7 +1,7 @@
 <template>
     <div class="home">
         <div v-if="!user" class="login-prompt">
-            <h2>Willkommen bei Finanzen Manager</h2>
+            <h2>Willkommen bei Subvision</h2>
             <p>Bitte melden Sie sich an, um Ihre Finanzen zu verwalten.</p>
             <div class="login-prompt__icon">
                 <i class="pi pi-lock" style="font-size: 4rem; color: #ccc;"></i>
@@ -427,7 +427,6 @@ export default {
     }
 }
 
-// Keep existing PrimeVue styles
 .p-datatable-column-header-content,.p-datatable-tbody > tr > td {
  padding: 20px 0 !important;
 }

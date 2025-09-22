@@ -8,12 +8,10 @@
            
            <template v-slot:form>
                <div class="contract-form">
-                   <!-- Show error message if exists -->
                    <div v-if="error" class="error-message">
                        {{ error }}
                    </div>
                    
-                   <!-- Show loading state -->
                    <div v-if="loading" class="loading-message">
                        Vertrag wird gespeichert...
                    </div>
@@ -126,7 +124,6 @@ export default {
         }
     },
     created() {
-        // Generate payment day options (1-31)
         this.paymentDays = Array.from({ length: 31 }, (_, i) => ({
             label: `${i + 1}. des Monats`,
             value: i + 1
@@ -136,10 +133,8 @@ export default {
         async addContract() {
             console.log('Adding contract:', this.contract);
             
-            // Reset error
             this.error = null;
             
-            // Validate required fields
             if (!this.contract.company || !this.contract.amount || !this.contract.startDate) {
                 this.error = 'Bitte füllen Sie alle Pflichtfelder aus.';
                 return;
@@ -150,7 +145,6 @@ export default {
                 return;
             }
             
-            // Check if end date is after start date
             if (this.contract.endDate && this.contract.endDate <= this.contract.startDate) {
                 this.error = 'Das Enddatum muss nach dem Startdatum liegen.';
                 return;
@@ -159,14 +153,12 @@ export default {
             this.loading = true;
             
             try {
-                // Get current user
                 const { data: { user }, error: userError } = await supabase.auth.getUser();
                 
                 if (userError || !user) {
                     throw new Error('Sie müssen angemeldet sein, um einen Vertrag hinzuzufügen.');
                 }
                 
-                // Prepare contract data for database
                 const contractData = {
                     user_id: user.id,
                     company: this.contract.company.trim(),
@@ -179,7 +171,6 @@ export default {
                 
                 console.log('Inserting contract data:', contractData);
                 
-                // Insert into database
                 const { data, error } = await supabase
                     .from('contracts')
                     .insert([contractData])
@@ -193,13 +184,10 @@ export default {
                 
                 console.log('Contract added successfully:', data);
                 
-                // Emit success event with the new contract
                 this.$emit('contract-added', data);
                 
-                // Close popup
                 this.$emit('close-popup');
                 
-                // Show success message
                 this.showSuccessMessage();
                 
             } catch (error) {
@@ -211,7 +199,6 @@ export default {
         },
         
         formatDateForDB(date) {
-            // Convert JavaScript Date to YYYY-MM-DD format
             if (!date) return null;
             
             const year = date.getFullYear();
