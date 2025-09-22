@@ -185,7 +185,6 @@ export default {
             if (!this.user) return;
             
             try {
-                // Load user profile
                 const { data: profile, error: profileError } = await supabase
                     .from('profiles')
                     .select('*')
@@ -198,7 +197,6 @@ export default {
                     this.userProfile = profile;
                 }
                 
-                // Load user contracts from database
                 await this.loadContracts();
                 
             } catch (error) {
@@ -219,12 +217,9 @@ export default {
                 if (error) {
                     console.error('Error loading contracts:', error);
                 } else {
-                    // Format contracts for display
                     this.contracts = contracts.map(contract => ({
                         ...contract,
-                        // Format date for display
                         date: this.formatDisplayDate(contract.start_date),
-                        // Keep original for other uses
                         start_date: contract.start_date,
                         end_date: contract.end_date
                     }));
@@ -258,7 +253,6 @@ export default {
         },
         
         async addContract(newContract) {
-            // Refresh contracts list after adding
             await this.loadContracts();
         },
         
@@ -272,13 +266,12 @@ export default {
                     .from('contracts')
                     .delete()
                     .eq('id', contractId)
-                    .eq('user_id', this.user.id); // Extra security check
+                    .eq('user_id', this.user.id);
                 
                 if (error) {
                     console.error('Error deleting contract:', error);
                     alert('Fehler beim Löschen des Vertrags.');
                 } else {
-                    // Refresh the contracts list
                     await this.loadContracts();
                 }
                 
