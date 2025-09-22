@@ -1,8 +1,18 @@
 <template>
   <div class="app">
-    <HeaderNavigation class="header" @navigate="x => navigate(x)" />
-    <Home v-if="view == 'Home'" />
-    <Calendar v-else-if="view == 'Calendar'" />
+    <HeaderNavigation 
+      class="header" 
+      @navigate="navigate" 
+      @user-changed="handleUserChanged" 
+    />
+    <Home 
+      v-if="view == 'Home'" 
+      :user="currentUser" 
+    />
+    <Calendar 
+      v-else-if="view == 'Calendar'" 
+      :user="currentUser" 
+    />
   </div>
 </template>
 
@@ -15,7 +25,8 @@ export default {
   name: 'App',
   data() {
     return {
-      view: "Home"
+      view: "Home",
+      currentUser: null
     }
   },
   components: {
@@ -26,6 +37,10 @@ export default {
   methods: {
     navigate(to) {
       this.view = to;
+    },
+    handleUserChanged(user) {
+      console.log('User changed in App:', user);
+      this.currentUser = user;
     }
   }
 }
