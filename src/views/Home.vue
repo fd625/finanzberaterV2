@@ -28,50 +28,77 @@
             </div>
             
             <div class="home-table">
-                <DataTable 
-                    :value="contracts" 
-                    scrollable 
-                    scrollHeight="400px" 
-                    paginator 
-                    :rows="5" 
-                    :rowsPerPageOptions="[5, 10, 20, 50]"
-                    filterDisplay="menu"
-                    :globalFilterFields="['company', 'date', 'balance']">
-                    <Column 
-                        field="company" 
-                        header="Unternehmen" 
-                        footer="Unternehmen" 
-                        style="min-width: 200px" 
-                        sortable>
-                    </Column>
-                    <Column 
-                        field="date" 
-                        header="Datum" 
-                        footer="Datum" 
-                        style="min-width: 200px" 
-                        sortable>
-                    </Column>
-                    <Column 
-                        field="balance" 
-                        header="Betrag" 
-                        footer="Betrag" 
-                        style="min-width: 200px" 
-                        sortable>
-                        <template #body="slotProps">
-                            {{ formatCurrency(slotProps.data.balance) }}
-                        </template>
-                    </Column>
-                    <Column header="Aktionen" style="min-width: 120px">
-                        <template #body="slotProps">
-                            <button 
-                                class="action-btn delete-btn" 
-                                @click="deleteContract(slotProps.index)">
-                                <i class="pi pi-trash"></i>
-                            </button>
-                        </template>
-                    </Column>
-                </DataTable>
-            </div>
+    <DataTable 
+        :value="contracts" 
+        scrollable 
+        scrollHeight="400px" 
+        paginator 
+        :rows="5" 
+        :rowsPerPageOptions="[5, 10, 20, 50]"
+        filterDisplay="menu"
+        :globalFilterFields="['company', 'description', 'date', 'amount']">
+        
+        <Column 
+            field="company" 
+            header="Unternehmen" 
+            footer="Unternehmen" 
+            style="min-width: 150px" 
+            sortable>
+        </Column>
+        
+        <Column 
+            field="description" 
+            header="Beschreibung" 
+            footer="Beschreibung" 
+            style="min-width: 200px" 
+            sortable>
+            <template #body="slotProps">
+                {{ slotProps.data.description || '-' }}
+            </template>
+        </Column>
+        
+        <Column 
+            field="date" 
+            header="Startdatum" 
+            footer="Startdatum" 
+            style="min-width: 120px" 
+            sortable>
+        </Column>
+        
+        <Column 
+            field="amount" 
+            header="Betrag" 
+            footer="Betrag" 
+            style="min-width: 120px" 
+            sortable>
+            <template #body="slotProps">
+                {{ formatCurrency(slotProps.data.amount) }}
+            </template>
+        </Column>
+        
+        <Column 
+            field="scheduled_payment" 
+            header="Abbuchung" 
+            footer="Abbuchung" 
+            style="min-width: 100px" 
+            sortable>
+            <template #body="slotProps">
+                {{ slotProps.data.scheduled_payment }}. des Monats
+            </template>
+        </Column>
+        
+        <Column header="Aktionen" style="min-width: 120px">
+            <template #body="slotProps">
+                <button 
+                    class="action-btn delete-btn" 
+                    @click="deleteContract(slotProps.data.id)"
+                    title="Vertrag löschen">
+                    <i class="pi pi-trash"></i>
+                </button>
+            </template>
+        </Column>
+    </DataTable>
+</div>
 
             <popup-add-contract 
                 v-if="showPopUp" 
@@ -126,57 +153,109 @@ export default {
         }
     },
     methods: {
-        async loadUserData() {
-            if (!this.user) return;
+    async loadUserData() {
+        if (!this.user) return;
+        
+        try {
+            // Load user profile
+            const { data: profile, error: profileError } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', this.user.id)
+                .single();
             
-            try {
-                // Load user profile
-                const { data: profile, error: profileError } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', this.user.id)
-                    .single();
-                
-                if (profileError && profileError.code !== 'PGRST116') {
-                    console.error('Error loading user profile:', profileError);
-                } else if (profile) {
-                    this.userProfile = profile;
-                }
-                
-                // Load user contracts (you'll need to create this table)
-                // For now, we'll use sample data
-                this.contracts = [
-                    {
-                        company: "Spotify",
-                        date: "01.10.2024",
-                        balance: 9.99
-                    },
-                    {
-                        company: "Netflix",
-                        date: "15.10.2024",
-                        balance: 15.99
-                    },
-                ];
-                
-            } catch (error) {
-                console.error('Error loading user data:', error);
+            if (profileError && profileError.code !== 'PGRST116') {
+                console.error('Error loading user profile:', profileError);
+            } else if (profile) {
+                this.userProfile = profile;
             }
-        },
-        formatCurrency(amount) {
-            return new Intl.NumberFormat('de-DE', {
-                style: 'currency',
-                currency: 'EUR'
-            }).format(amount);
-        },
-        addContract(newContract) {
-            this.contracts.push(newContract);
-        },
-        deleteContract(index) {
-            if (confirm('Möchten Sie diesen Vertrag wirklich löschen?')) {
-                this.contracts.splice(index, 1);
+            
+            // Load user contracts from database
+            await this.loadContracts();
+            
+        } catch (error) {
+            console.error('Error loading user data:', error);
+        }
+    },
+    
+    async loadContracts() {
+        if (!this.user) return;
+        
+        try {
+            const { data: contracts, error } = await supabase
+                .from('contracts')
+                .select('*')
+                .eq('user_id', this.user.id)
+                .order('created_at', { ascending: false });
+            
+            if (error) {
+                console.error('Error loading contracts:', error);
+            } else {
+                // Format contracts for display
+                this.contracts = contracts.map(contract => ({
+                    ...contract,
+                    // Format date for display
+                    date: this.formatDisplayDate(contract.start_date),
+                    // Keep original for other uses
+                    start_date: contract.start_date,
+                    end_date: contract.end_date
+                }));
             }
+            
+        } catch (error) {
+            console.error('Error loading contracts:', error);
+        }
+    },
+    
+    formatDisplayDate(dateString) {
+        if (!dateString) return '';
+        
+        const date = new Date(dateString);
+        return date.toLocaleDateString('de-DE', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        });
+    },
+    
+    formatCurrency(amount) {
+        return new Intl.NumberFormat('de-DE', {
+            style: 'currency',
+            currency: 'EUR'
+        }).format(amount);
+    },
+    
+    async addContract(newContract) {
+        // Refresh contracts list after adding
+        await this.loadContracts();
+    },
+    
+    async deleteContract(contractId) {
+        if (!confirm('Möchten Sie diesen Vertrag wirklich löschen?')) {
+            return;
+        }
+        
+        try {
+            const { error } = await supabase
+                .from('contracts')
+                .delete()
+                .eq('id', contractId)
+                .eq('user_id', this.user.id); // Extra security check
+            
+            if (error) {
+                console.error('Error deleting contract:', error);
+                alert('Fehler beim Löschen des Vertrags.');
+            } else {
+                // Refresh the contracts list
+                await this.loadContracts();
+            }
+            
+        } catch (error) {
+            console.error('Error deleting contract:', error);
+            alert('Fehler beim Löschen des Vertrags.');
         }
     }
+}
 }
 </script>
 

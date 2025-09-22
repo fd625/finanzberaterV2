@@ -85,10 +85,13 @@ export default {
         async checkAuthState() {
             try {
                 const { data: { session } } = await supabase.auth.getSession();
+                console.log('Header - Current session:', session);
                 if (session) {
                     this.user = session.user;
                     await this.loadUserProfile();
                     this.$emit('user-changed', this.user);
+                } else {
+                    console.log('Header - No session found');
                 }
             } catch (error) {
                 console.error('Error checking auth state:', error);
