@@ -90,7 +90,7 @@
                     </h3>
                     
                     <div v-if="!changingPassword" class="card-content">
-                        <p>Ändern Sie Ihr Passwort für mehr Sicherheit.</p>
+                        <p>Sie können hier ein neues Passwort festlegen.</p>
                         <button class="edit-btn" @click="startChangingPassword">
                             <i class="pi pi-key"></i> Passwort ändern
                         </button>
@@ -142,21 +142,6 @@
                     </div>
                 </div>
                 
-                <div class="profile-card danger-card">
-                    <h3>
-                        <i class="pi pi-exclamation-triangle"></i>
-                        Kontoverwaltung
-                    </h3>
-                    
-                    <div class="card-content">
-                        <div class="danger-section">
-                            <p><strong>Vorsicht:</strong> Diese Aktion kann nicht rückgängig gemacht werden.</p>
-                            <button class="danger-btn" @click="confirmDeleteAccount">
-                                <i class="pi pi-trash"></i> Konto löschen
-                            </button>
-                        </div>
-                    </div>
-                </div>
                 
             </div>
         </div>
@@ -357,39 +342,7 @@ export default {
                 this.loadingPassword = false;
             }
         },
-        
-        confirmDeleteAccount() {
-            const confirmed = confirm(
-                'WARNUNG: Sind Sie sicher, dass Sie Ihr Konto löschen möchten? ' +
-                'Diese Aktion kann nicht rückgängig gemacht werden und alle Ihre Daten werden dauerhaft gelöscht.'
-            );
-            
-            if (confirmed) {
-                const doubleConfirm = confirm(
-                    'Letzte Bestätigung: Ihr Konto und alle Daten werden unwiderruflich gelöscht. Fortfahren?'
-                );
-                
-                if (doubleConfirm) {
-                    this.deleteAccount();
-                }
-            }
-        },
-        
-        async deleteAccount() {
-            try {
-                // This would need to be implemented on the backend
-                // For now, we'll just sign out the user
-                const { error } = await supabase.auth.signOut();
-                if (error) throw error;
-                
-                alert('Konto-Löschung würde hier implementiert werden. Sie wurden abgemeldet.');
-                
-            } catch (error) {
-                console.error('Error deleting account:', error);
-                alert('Fehler beim Löschen des Kontos. Versuchen Sie es später erneut.');
-            }
         }
-    }
 }
 </script>
 
@@ -589,24 +542,6 @@ export default {
                 box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             }
         }
-        
-        .danger-btn {
-            background-color: #dc3545;
-            color: white;
-            
-            &:hover:not(:disabled) {
-                background-color: #c82333;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            }
-        }
-        
-        .danger-section {
-            p {
-                margin-bottom: 15px;
-                color: #721c24;
-            }
-        }
-        
         .error-message {
             background-color: #fee;
             color: #c00;

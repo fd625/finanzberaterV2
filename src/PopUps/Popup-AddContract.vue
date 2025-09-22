@@ -60,6 +60,7 @@
                                :disabled="loading"
                                placeholder="Datum auswählen"
                                :showIcon="true"
+                               appendTo="body"
                            />
                        </div>
                        
@@ -71,6 +72,7 @@
                                :disabled="loading"
                                placeholder="Optional"
                                :showIcon="true"
+                               appendTo="body"
                            />
                        </div>
                    </div>
@@ -85,6 +87,7 @@
                            placeholder="Tag auswählen"
                            :disabled="loading"
                            class="payment-dropdown"
+                           appendTo="body"
                        />
                    </div>
                    
@@ -374,5 +377,10 @@ export default {
             }
         }
     }
+}
+
+.p-datepicker,
+.p-datepicker-panel {
+    z-index: 10000 !important;
 }
 </style>
