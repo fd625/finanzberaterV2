@@ -8,12 +8,10 @@
                 <div v-if="user" class="header__navigation__item" @click="navigate('Profile')">Profil</div>
             </div>
             <div class="header__user-section">
-                <!-- Show user info if logged in -->
                 <div v-if="user" class="header__user-info">
                     <span class="header__username">{{ userProfile?.username || user.email }}</span>
                     <button class="header__logout-btn" @click="logout">Abmelden</button>
                 </div>
-                <!-- Show login button if not logged in -->
                 <div v-else class="header__user-button">
                     <i class="header__user-button__icon pi pi-user" @click="showLoginModal = true"></i>
                 </div>
@@ -57,10 +55,8 @@ export default {
         PopUpRegister
     },
     async mounted() {
-        // Check if user is already logged in
         await this.checkAuthState();
         
-        // Listen for auth state changes
         supabase.auth.onAuthStateChange(async (event, session) => {
             console.log('Auth state changed:', event, session);
             

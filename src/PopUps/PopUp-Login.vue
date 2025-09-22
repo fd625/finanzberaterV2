@@ -8,12 +8,10 @@
             submitHeadline="Login">
             <template v-slot:form>
                 <div class="login__popup__container">
-                    <!-- Show error message if exists -->
                     <div v-if="error" class="error-message">
                         {{ error }}
                     </div>
                     
-                    <!-- Show loading state -->
                     <div v-if="loading" class="loading-message">
                         Anmeldung läuft...
                     </div>
@@ -72,16 +70,13 @@ export default {
         async login() {
             console.log("Login method called");
             
-            // Clear previous error
             this.error = null;
             
-            // Validate inputs
             if (!this.email || !this.password) {
                 this.error = "Bitte füllen Sie alle Felder aus.";
                 return;
             }
             
-            // Validate email format
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(this.email)) {
                 this.error = "Bitte geben Sie eine gültige E-Mail-Adresse ein.";
@@ -110,7 +105,6 @@ export default {
                 if (data.user) {
                     console.log("Login successful:", data.user);
                     
-                    // Login successful
                     this.$emit('close-popup');
                     this.$emit('login-success', data.user);
                 }
@@ -124,7 +118,6 @@ export default {
         },
         
         getErrorMessage(error) {
-            // Convert common Supabase errors to German
             switch (error.message) {
                 case 'Invalid login credentials':
                     return 'Ungültige E-Mail oder Passwort.';
