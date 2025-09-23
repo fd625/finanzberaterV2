@@ -223,6 +223,7 @@ export default {
                         start_date: contract.start_date,
                         end_date: contract.end_date
                     }));
+                    this.amountSum = 0;
                     this.contracts.forEach(x => {
                         this.amountSum += x.amount;
                     })
