@@ -1,35 +1,36 @@
 <template>
-    <div class="header">
-        <img class="header__logo" :src="logoPng" alt="logo" />
-        <div class="header__container">
-            <div class="header__navigation">
-                <div class="header__navigation__item" @click="navigate('Home')">Finanzen</div>
-                <div class="header__navigation__item" @click="navigate('Calendar')">Kalendar</div>
-                <div v-if="user" class="header__navigation__item" @click="navigate('Profile')">Profil</div>
-            </div>
-            <div class="header__user-section">
-                <div v-if="user" class="header__user-info">
-                    <span class="header__username">{{ userProfile?.username || user.email }}</span>
-                    <button class="header__logout-btn" @click="logout">Abmelden</button>
-                </div>
-                <div v-else class="header__user-button">
-                    <i class="header__user-button__icon pi pi-user" @click="showLoginModal = true"></i>
-                </div>
-            </div>
+  <div class="header">
+    <img class="header__logo" :src="logoPng" alt="logo" />
+    <div class="header__container">
+      <div class="header__navigation">
+        <RouterLink to="/Finanzen" class="header__navigation__item">Finanzen</RouterLink>
+        <RouterLink to="/Kalendar" class="header__navigation__item">Kalendar</RouterLink>
+        <RouterLink to="/BenutzerProfil" class="header__navigation__item">Profil</RouterLink>
+      </div>
+
+      <div class="header__user-section">
+        <div v-if="isAuthenticated" class="header__user-info">
+          <span class="header__username">{{ userProfile?.username || user?.email }}</span>
+          <button class="header__logout-btn" @click="logout">Abmelden</button>
         </div>
-
-        <pop-up-login 
-            @close-popup="showLoginModal = false" 
-            @login-success="handleLoginSuccess"
-            v-if="showLoginModal"
-            @register="register()">
-        </pop-up-login>
-
-        <pop-up-register 
-            v-if="showRegisterModal" 
-            @close-popup="showRegisterModal = false">
-        </pop-up-register>
+        <div v-else class="header__user-button">
+          <i class="header__user-button__icon pi pi-user" @click="showLoginModal = true"></i>
+        </div>
+      </div>
     </div>
+
+    <pop-up-login 
+      @close-popup="showLoginModal = false" 
+      @login-success="handleLoginSuccess"
+      v-if="showLoginModal"
+      @register="register()">
+    </pop-up-login>
+
+    <pop-up-register 
+      v-if="showRegisterModal" 
+      @close-popup="showRegisterModal = false">
+    </pop-up-register>
+  </div>
 </template>
 
 <script>
@@ -37,97 +38,59 @@ import logo from "../assets/logo.png";
 import 'primeicons/primeicons.css'
 import PopUpLogin from "../PopUps/PopUp-Login.vue";
 import PopUpRegister from "../PopUps/PopUp-Register.vue";
-import { supabase } from '../database.js';
+import { RouterLink } from "vue-router";
 
 export default {
-    name: "HeaderNav",
-    data() {
-        return {
-            logoPng: logo,
-            showLoginModal: false,
-            showRegisterModal: false,
-            user: null,
-            userProfile: null
-        }
-    },
-    components: {
-        PopUpLogin,
-        PopUpRegister
-    },
-    async mounted() {
-        await this.checkAuthState();
-        
-        supabase.auth.onAuthStateChange(async (event, session) => {
-            console.log('Auth state changed:', event, session);
-            
-            if (event === 'SIGNED_IN' && session) {
-                this.user = session.user;
-                await this.loadUserProfile();
-                this.$emit('user-changed', this.user);
-            } else if (event === 'SIGNED_OUT') {
-                this.user = null;
-                this.userProfile = null;
-                this.$emit('user-changed', null);
-            }
-        });
-    },
-    methods: {
-        navigate(to) {
-            this.$emit('navigate', to);
-        },
-        register() {
-            this.showLoginModal = false;
-            this.showRegisterModal = true;
-        },
-        async checkAuthState() {
-            try {
-                const { data: { session } } = await supabase.auth.getSession();
-                console.log('Header - Current session:', session);
-                if (session) {
-                    this.user = session.user;
-                    await this.loadUserProfile();
-                    this.$emit('user-changed', this.user);
-                } else {
-                    console.log('Header - No session found');
-                }
-            } catch (error) {
-                console.error('Error checking auth state:', error);
-            }
-        },
-        async loadUserProfile() {
-            if (!this.user) return;
-            
-            try {
-                const { data, error } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', this.user.id)
-                    .single();
-                
-                if (error && error.code !== 'PGRST116') {
-                    console.error('Error loading user profile:', error);
-                } else if (data) {
-                    this.userProfile = data;
-                }
-            } catch (error) {
-                console.error('Error loading user profile:', error);
-            }
-        },
-        handleLoginSuccess(user) {
-            console.log('Login success handled in header:', user);
-            this.showLoginModal = false;
-        },
-        async logout() {
-            try {
-                const { error } = await supabase.auth.signOut();
-                if (error) throw error;
-                
-                console.log('User logged out');
-            } catch (error) {
-                console.error('Error logging out:', error);
-            }
-        }
+  name: "HeaderNav",
+  components: { PopUpLogin, PopUpRegister, RouterLink },
+
+  data() {
+    return {
+      logoPng: logo,
+      showLoginModal: false,
+      showRegisterModal: false
     }
+  },
+
+  computed: {
+    user() {
+      return this.$store.getters['auth/user']
+    },
+    userProfile() {
+      return this.$store.getters['auth/userProfile']
+    },
+    isAuthenticated() {
+      return this.$store.getters['auth/isAuthenticated']
+    }
+  },
+
+  mounted() {
+    // Auth-State beim Laden prüfen
+    this.$store.dispatch('auth/checkAuthState')
+
+    // Auth-State Listener
+    const authApi = this.$store._modulesNamespaceMap['auth/']?.context?.state // Optional, nur um sicherzustellen
+    import('../API/resources/auth.js').then(({ default: authApi }) => {
+      authApi.supabase.auth.onAuthStateChange(async (event, session) => {
+        console.log('Auth state changed:', event, session)
+        await this.$store.dispatch('auth/checkAuthState')
+      })
+    })
+  },
+
+  methods: {
+    register() {
+      this.showLoginModal = false
+      this.showRegisterModal = true
+    },
+    handleLoginSuccess(user) {
+      this.showLoginModal = false
+      this.$store.dispatch('auth/handleLoginSuccess', user)
+    },
+    logout() {
+      this.$store.dispatch('auth/logout')
+    }
+  }
 }
 </script>
 

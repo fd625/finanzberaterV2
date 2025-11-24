@@ -25,94 +25,7 @@
                 </div>
             </div>
             
-            <div class="home-table">
-                <DataTable 
-                    :value="contracts" 
-                    scrollable 
-                    scrollHeight="400px" 
-                    paginator 
-                    :loading="loading"
-                    v-model:filters="filters"
-                    :rows="5" 
-                    :rowsPerPageOptions="[5, 10, 20, 50]"
-                    filterDisplay="menu"
-                    :globalFilterFields="['company', 'description', 'date', 'amount','scheduled_payment', ]">
-                    
-                    <template #header>
-                        <div class="flex justify-between home-table__header">
-                            <Button 
-                                type="button" 
-                                icon="pi pi-filter-slash" 
-                                label="Clear" 
-                                variant="outlined" 
-                                @click="clearFilter()" 
-                            />
-                                <InputText 
-                                    v-model="filters['global'].value" 
-                                    placeholder="Suche..." 
-                                    style="width: 30% !important; margin: 0 !important;"
-                                />
-                        </div>
-                    </template>
-                    <template #empty> Keine Verträge gefunden. </template>
-                    <template #loading> Verträge werden geladen. Bitte warten. </template>
-                     
-                    <Column 
-                        field="company" 
-                        header="Unternehmen"
-                        style="min-width: 150px" 
-                        sortable>
-                    </Column>
-                    
-                    <Column 
-                        field="description" 
-                        header="Beschreibung" 
-                        style="min-width: 200px" 
-                        sortable>
-                        <template #body="slotProps">
-                            {{ slotProps.data.description || '-' }}
-                        </template>
-                    </Column>
-                    
-                    <Column 
-                        field="date" 
-                        header="Startdatum" 
-                        style="min-width: 120px" 
-                        sortable>
-                    </Column>
-                    
-                    <Column 
-                        field="amount" 
-                        header="Betrag" 
-                        style="min-width: 120px" 
-                        sortable>
-                        <template #body="slotProps">
-                            {{ formatCurrency(slotProps.data.amount) }}
-                        </template>
-                    </Column>
-                    
-                    <Column 
-                        field="scheduled_payment" 
-                        header="Abbuchung" 
-                        style="min-width: 100px" 
-                        sortable>
-                        <template #body="slotProps">
-                            {{ slotProps.data.scheduled_payment }}. des Monats
-                        </template>
-                    </Column>
-                    
-                    <Column header="Aktionen" style="min-width: 120px">
-                        <template #body="slotProps">
-                            <button 
-                                class="action-btn delete-btn" 
-                                @click="deleteContract(slotProps.data.id)"
-                                title="Vertrag löschen">
-                                <i class="pi pi-trash"></i>
-                            </button>
-                        </template>
-                    </Column>
-                </DataTable>
-            </div>
+            <contracts-table />
 
             <popup-add-contract 
                 v-if="showPopUp" 
@@ -124,17 +37,10 @@
 </template>
 
 <script>
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
-import ColumnGroup from 'primevue/columngroup';   
-import Row from 'primevue/row';      
+   
 import PopupAddContract from '../PopUps/Popup-AddContract.vue';
 import { supabase } from '../database.js';
-import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
-import IconField from 'primevue/iconfield';
-import InputIcon from 'primevue/inputicon';
-import InputText from 'primevue/inputtext';
-import Button from 'primevue/button';
+import ContractsTable from '../components/Contracts-Table.vue';
 
 export default {
     name: 'Home',
@@ -147,174 +53,38 @@ export default {
     data() {
         return {
             showPopUp: false, 
-            contracts: [],
             userProfile: null,
-            filters: null,
             amountSum: 0
         }
     },
     components: {
-        DataTable,
-        Column,
-        ColumnGroup,
-        Row,
         PopupAddContract,
-        IconField,
-        InputIcon,
-        InputText,
-        Button
+        ContractsTable
     },
-    watch: {
-        user: {
-            handler(newUser) {
-                if (newUser) {
-                    this.loadUserData();
-                } else {
-                    this.contracts = [];
-                    this.userProfile = null;
-                }
-            },
-            immediate: true
-        }
+    computed: {
+        isAuthenticated() {
+            return this.$store.getters['auth/isAuthenticated']
+        },
+        userProfile() {
+            return this.$store.getters['auth/userProfile']
+        },
+        isLoading() {
+            return this.$store.getters['auth/isLoading']
+        },
     },
     created() {
-        this.initFilters();
+        this.$store.dispatch('auth/checkAuthState')
     },
     methods: {
-        async loadUserData() {
-            if (!this.user) return;
-            
-            try {
-                const { data: profile, error: profileError } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', this.user.id)
-                    .single();
-                
-                if (profileError && profileError.code !== 'PGRST116') {
-                    console.error('Error loading user profile:', profileError);
-                } else if (profile) {
-                    this.userProfile = profile;
-                }
-                
-                await this.loadContracts();
-                
-            } catch (error) {
-                console.error('Error loading user data:', error);
-            }
+        logout() {
+        this.$store.dispatch('auth/logout')
         },
-        
-        async loadContracts() {
-            if (!this.user) return;
-            
-            try {
-                const { data: contracts, error } = await supabase
-                    .from('contracts')
-                    .select('*')
-                    .eq('user_id', this.user.id)
-                    .order('created_at', { ascending: false });
-                
-                if (error) {
-                    console.error('Error loading contracts:', error);
-                } else {
-                    this.contracts = contracts.map(contract => ({
-                        ...contract,
-                        date: this.formatDisplayDate(contract.start_date),
-                        start_date: contract.start_date,
-                        end_date: contract.end_date
-                    }));
-                    this.amountSum = 0;
-                    this.contracts.forEach(x => {
-                        this.amountSum += x.amount;
-                    })
-                    console.log("amount sum",this.amountSum);
-                }
-                
-            } catch (error) {
-                console.error('Error loading contracts:', error);
-            }
+        handleLoginSuccess(user) {
+            console.log('Login success handled in header:', user)
+            this.showLoginModal = false
+            this.$store.dispatch('auth/handleLoginSuccess', user)
         },
-        
-        formatDisplayDate(dateString) {
-            if (!dateString) return '';
-            
-            const date = new Date(dateString);
-            return date.toLocaleDateString('de-DE', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit'
-            });
-        },
-        
-        formatCurrency(amount) {
-            return new Intl.NumberFormat('de-DE', {
-                style: 'currency',
-                currency: 'EUR'
-            }).format(amount);
-        },
-        
-        async addContract(newContract) {
-            await this.loadContracts();
-        },
-        
-        async deleteContract(contractId) {
-            if (!confirm('Möchten Sie diesen Vertrag wirklich löschen?')) {
-                return;
-            }
-            
-            try {
-                const { error } = await supabase
-                    .from('contracts')
-                    .delete()
-                    .eq('id', contractId)
-                    .eq('user_id', this.user.id);
-                
-                if (error) {
-                    console.error('Error deleting contract:', error);
-                    alert('Fehler beim Löschen des Vertrags.');
-                } else {
-                    await this.loadContracts();
-                }
-                
-            } catch (error) {
-                console.error('Error deleting contract:', error);
-                alert('Fehler beim Löschen des Vertrags.');
-            }
-        },
-        clearFilter() {
-            this.initFilters();
-        },
-        initFilters() {
-            this.filters = {
-                global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-
-                company: { 
-                    operator: FilterOperator.AND, 
-                    constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] 
-                },
-
-                description: { 
-                    operator: FilterOperator.AND, 
-                    constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }] 
-                },
-
-                date: { 
-                    operator: FilterOperator.AND, 
-                    constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] 
-                },
-
-                amount: { 
-                    operator: FilterOperator.AND, 
-                    constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] 
-                },
-
-                scheduled_payment: { 
-                    operator: FilterOperator.AND, 
-                    constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] 
-                }
-            };
-        }
-    }
+    },
 }
 </script>
 
