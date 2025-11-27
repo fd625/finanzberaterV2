@@ -3,7 +3,7 @@
     <img class="header__logo" :src="logoPng" alt="logo" />
     <div class="header__container">
       <div class="header__navigation">
-        <RouterLink to="/Finanzen" class="header__navigation__item">Finanzen</RouterLink>
+        <RouterLink to="/" class="header__navigation__item">Finanzen</RouterLink>
         <RouterLink to="/Kalendar" class="header__navigation__item">Kalendar</RouterLink>
         <RouterLink to="/BenutzerProfil" class="header__navigation__item">Profil</RouterLink>
       </div>
@@ -20,22 +20,22 @@
     </div>
 
     <pop-up-login 
-      @close-popup="showLoginModal = false" 
-      @login-success="handleLoginSuccess"
       v-if="showLoginModal"
-      @register="register()">
-    </pop-up-login>
+      @close-popup="showLoginModal = false"
+      @login-success="handleLoginSuccess"
+      @register="register"
+    ></pop-up-login>
 
     <pop-up-register 
       v-if="showRegisterModal" 
-      @close-popup="showRegisterModal = false">
-    </pop-up-register>
+      @close-popup="showRegisterModal = false"
+    ></pop-up-register>
   </div>
 </template>
 
 <script>
 import logo from "../assets/logo.png";
-import 'primeicons/primeicons.css'
+import 'primeicons/primeicons.css';
 import PopUpLogin from "../PopUps/PopUp-Login.vue";
 import PopUpRegister from "../PopUps/PopUp-Register.vue";
 import { RouterLink } from "vue-router";
@@ -48,47 +48,44 @@ export default {
     return {
       logoPng: logo,
       showLoginModal: false,
-      showRegisterModal: false
+      showRegisterModal: false,
     }
   },
 
   computed: {
     user() {
-      return this.$store.getters['auth/user']
+      return this.$store.state.currentUser.user;
     },
     userProfile() {
-      return this.$store.getters['auth/userProfile']
+      return this.$store.state.currentUser.profile;
     },
     isAuthenticated() {
-      return this.$store.getters['auth/isAuthenticated']
+      return this.$store.getters['currentUser/isAuthenticated'];
+    },
+    isLoading() {
+      return this.$store.getters['currentUser/isLoading'];
     }
   },
 
-  mounted() {
-    // Auth-State beim Laden prüfen
-    this.$store.dispatch('auth/checkAuthState')
-
-    // Auth-State Listener
-    const authApi = this.$store._modulesNamespaceMap['auth/']?.context?.state // Optional, nur um sicherzustellen
-    import('../API/resources/auth.js').then(({ default: authApi }) => {
-      authApi.supabase.auth.onAuthStateChange(async (event, session) => {
-        console.log('Auth state changed:', event, session)
-        await this.$store.dispatch('auth/checkAuthState')
-      })
-    })
+  created() {
+    // Prüfe Auth-Status beim Laden
+    this.$store.dispatch('currentUser/checkAuthState');
   },
 
   methods: {
     register() {
-      this.showLoginModal = false
-      this.showRegisterModal = true
+      this.showLoginModal = false;
+      this.showRegisterModal = true;
     },
+
     handleLoginSuccess(user) {
-      this.showLoginModal = false
-      this.$store.dispatch('auth/handleLoginSuccess', user)
+      this.showLoginModal = false;
+      // Dispatch login Erfolg an den Store
+      this.$store.dispatch('currentUser/handleLoginSuccess', user);
     },
+
     logout() {
-      this.$store.dispatch('auth/logout')
+      this.$store.dispatch('currentUser/logout');
     }
   }
 }

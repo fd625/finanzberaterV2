@@ -89,91 +89,70 @@
     </div>
 </template>
 <script>
+import contractManager from "../services/contractManager";
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import ColumnGroup from 'primevue/columngroup';   
-import Row from 'primevue/row'; 
-import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
-import IconField from 'primevue/iconfield';
-import InputIcon from 'primevue/inputicon';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
+import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
 
 export default {
     name: "contracts-table",
+    components: { DataTable, Column, InputText, Button },
     data() {
         return {
             contracts: [],
             filters: null,
-        }
+            loading: false
+        };
     },
-    components: {
-        DataTable,
-        Column,
-        ColumnGroup,
-        Row,
-        IconField,
-        InputIcon,
-        InputText,
-        Button
-    },
-    created() {
+    async created() {
         this.initFilters();
-    },
-    computed: {
-        contracts() {
-            return this.$store.getters['contract/contracts']
-        },
-        amountSum() {
-            return this.$store.getters['contract/amountSum']
-        },
-        isLoading() {
-            return this.$store.getters['contract/isLoading']
-        },
-    },
-    created() {
-        this.$store.dispatch('contract/loadContracts')
+        await this.loadContracts();
     },
     methods: {
-        deleteContract(id) {
-            this.$store.dispatch('contract/deleteContract', id)
+        async loadContracts() {
+            this.loading = true;
+            try {
+                this.contracts = await contractManager.getAllContracts();
+            } catch (err) {
+                console.error("Fehler beim Laden der Verträge:", err);
+            } finally {
+                this.loading = false;
+            }
         },
+
+        async deleteContract(id) {
+            if (!confirm("Vertrag wirklich löschen?")) return;
+            try {
+                await contractManager.deleteContract(id);
+                await this.loadContracts(); 
+            } catch (err) {
+                console.error("Fehler beim Löschen:", err);
+            }
+        },
+
         clearFilter() {
             this.initFilters();
         },
+
         initFilters() {
             this.filters = {
                 global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-
-                company: { 
-                    operator: FilterOperator.AND, 
-                    constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] 
-                },
-
-                description: { 
-                    operator: FilterOperator.AND, 
-                    constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }] 
-                },
-
-                date: { 
-                    operator: FilterOperator.AND, 
-                    constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] 
-                },
-
-                amount: { 
-                    operator: FilterOperator.AND, 
-                    constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] 
-                },
-
-                scheduled_payment: { 
-                    operator: FilterOperator.AND, 
-                    constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] 
-                }
+                company: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
+                description: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }] },
+                date: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] },
+                amount: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] },
+                scheduled_payment: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] }
             };
+        },
+
+        formatCurrency(value) {
+            return new Intl.NumberFormat("de-DE", {
+                style: "currency",
+                currency: "EUR"
+            }).format(value);
         }
     }
-}
+};
 </script>
-<style lang="scss">
-    
-</style>

@@ -1,257 +1,212 @@
 <template>
-    <div class="calendar-container">
-        <div v-if="!user" class="login-prompt">
-            <h2>Kalender</h2>
-            <p>Bitte melden Sie sich an, um Ihre Termine zu sehen.</p>
-            <div class="login-prompt__icon">
-                <i class="pi pi-calendar" style="font-size: 4rem; color: #ccc;"></i>
-            </div>
-        </div>
-        
-        <div v-else>
-            <div class="calendar-header">
-                <div class="headline">Kalender</div>
-                <button class="add-event-btn" @click="showAddEventModal = true">
-                    <i class="pi pi-plus"></i> Termin hinzufügen
-                </button>
-            </div>
-            
-            <CalendarView
-                :show-date="currentDate"
-                display-period-uom="month"
-                :display-period-count="1"
-                :starting-day-of-week="1"
-                :events="userEvents"
-                :enable-drag-drop="true"
-                :show-event-times="true"
-                locale="de-DE"
-                class="theme-default"
-                @item-click="onEventClick"
-                @input="onDateChange"
-                >
-                <template #header="{ headerProps }">
-                    <CalendarViewHeader
-                    :header-props="headerProps"
-                    @input="onDateChange"
-                    />
-                </template>
-                
-                <template #item="{ item }">
-                    <div class="my-event" :class="getEventClass(item.type)">
-                        <strong>{{ item.title }}</strong>
-                        <div v-if="item.startTime">{{ item.startTime }}</div>
-                        <div v-if="item.amount" class="event-amount">{{ formatCurrency(item.amount) }}</div>
-                    </div>
-                </template>
-            </CalendarView>
-            
-            <div v-if="showAddEventModal" class="modal-overlay" @click="closeAddEventModal">
-                <div class="event-modal" @click.stop>
-                    <h3>Neuen Termin hinzufügen</h3>
-                    <form @submit.prevent="addEvent">
-                        <div class="form-group">
-                            <label>Titel:</label>
-                            <input v-model="newEvent.title" type="text" required />
-                        </div>
-                        <div class="form-group">
-                            <label>Datum:</label>
-                            <input v-model="newEvent.date" type="date" required />
-                        </div>
-                        <div class="form-group">
-                            <label>Zeit:</label>
-                            <input v-model="newEvent.time" type="time" />
-                        </div>
-                        <div class="form-group">
-                            <label>Typ:</label>
-                            <select v-model="newEvent.type">
-                                <option value="general">Allgemein</option>
-                                <option value="payment">Zahlung</option>
-                                <option value="income">Einkommen</option>
-                                <option value="meeting">Termin</option>
-                            </select>
-                        </div>
-                        <div class="form-group" v-if="newEvent.type === 'payment' || newEvent.type === 'income'">
-                            <label>Betrag (€):</label>
-                            <input v-model="newEvent.amount" type="number" step="0.01" />
-                        </div>
-                        <div class="modal-buttons">
-                            <button type="button" @click="closeAddEventModal" class="btn-cancel">
-                                Abbrechen
-                            </button>
-                            <button type="submit" class="btn-submit">
-                                Hinzufügen
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+  <div class="calendar-container">
+    <div v-if="!user" class="login-prompt">
+      <h2>Kalender</h2>
+      <p>Bitte melden Sie sich an, um Ihre Termine zu sehen.</p>
+      <div class="login-prompt__icon">
+        <i class="pi pi-calendar" style="font-size: 4rem; color: #ccc;"></i>
+      </div>
     </div>
+
+    <div v-else>
+      <div class="calendar-header">
+        <div class="headline">Kalender</div>
+        <button class="add-event-btn" @click="showAddEventModal = true">
+          <i class="pi pi-plus"></i> Termin hinzufügen
+        </button>
+      </div>
+
+      <CalendarView
+        :show-date="currentDate"
+        display-period-uom="month"
+        :display-period-count="1"
+        :starting-day-of-week="1"
+        :events="userEvents"
+        :enable-drag-drop="true"
+        :show-event-times="true"
+        locale="de-DE"
+        class="theme-default"
+        @item-click="onEventClick"
+        @input="onDateChange"
+      >
+        <template #header="{ headerProps }">
+          <CalendarViewHeader
+            :header-props="headerProps"
+            @input="onDateChange"
+          />
+        </template>
+
+        <template #item="{ item }">
+          <div class="my-event" :class="getEventClass(item.type)">
+            <strong>{{ item.title }}</strong>
+            <div v-if="item.startTime">{{ item.startTime }}</div>
+            <div v-if="item.amount" class="event-amount">{{ formatCurrency(item.amount) }}</div>
+          </div>
+        </template>
+      </CalendarView>
+
+      <div v-if="showAddEventModal" class="modal-overlay" @click="closeAddEventModal">
+        <div class="event-modal" @click.stop>
+          <h3>Neuen Termin hinzufügen</h3>
+          <form @submit.prevent="addEvent">
+            <div class="form-group">
+              <label>Titel:</label>
+              <input v-model="newEvent.title" type="text" required />
+            </div>
+            <div class="form-group">
+              <label>Datum:</label>
+              <input v-model="newEvent.date" type="date" required />
+            </div>
+            <div class="form-group">
+              <label>Zeit:</label>
+              <input v-model="newEvent.time" type="time" />
+            </div>
+            <div class="form-group">
+              <label>Typ:</label>
+              <select v-model="newEvent.type">
+                <option value="general">Allgemein</option>
+                <option value="payment">Zahlung</option>
+                <option value="income">Einkommen</option>
+                <option value="meeting">Termin</option>
+              </select>
+            </div>
+            <div class="form-group" v-if="newEvent.type === 'payment' || newEvent.type === 'income'">
+              <label>Betrag (€):</label>
+              <input v-model="newEvent.amount" type="number" step="0.01" />
+            </div>
+            <div class="modal-buttons">
+              <button type="button" @click="closeAddEventModal" class="btn-cancel">
+                Abbrechen
+              </button>
+              <button type="submit" class="btn-submit">
+                Hinzufügen
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { useStore } from 'vuex';
 import { CalendarView, CalendarViewHeader } from "vue-simple-calendar";
 import "../../node_modules/vue-simple-calendar/dist/vue-simple-calendar.css"
 
 export default {
-    name: "Calendar",
-    props: {
-        user: {
-            type: Object,
-            default: null
-        }
-    },
-    data() {
-        return {
-            showDate: new Date(),
-            showAddEventModal: false,
-            newEvent: {
-                title: '',
-                date: '',
-                time: '',
-                type: 'general',
-                amount: null
-            },
-            userEvents: []
-        }
-    },
-    components: {
-        CalendarView,
-        CalendarViewHeader,
-    },
-    setup() {
-        const currentDate = ref(new Date());
+  name: "Calendar",
+  components: {
+    CalendarView,
+    CalendarViewHeader,
+  },
+  setup() {
+    const store = useStore();
+    const currentDate = ref(new Date());
+    const showAddEventModal = ref(false);
+    const newEvent = ref({
+      title: '',
+      date: '',
+      time: '',
+      type: 'general',
+      amount: null
+    });
+    const userEvents = ref([]);
 
-        function onDateChange(newDate) {
-            currentDate.value = newDate;
-        }
-        
-        function onEventClick(item) {
-            console.log('Event clicked:', item);
-        }
+    const user = computed(() => store.state.currentUser.user);
 
-        return { currentDate, onDateChange, onEventClick };
-    },
-    mounted() {
-        this.checkAuthState();
-    },
-    watch: {
-        user: {
-            handler(newUser) {
-                console.log('Calendar - User prop changed:', newUser);
-                if (newUser) {
-                    this.loadUserEvents();
-                } else {
-                    this.userEvents = [];
-                }
-            },
-            immediate: true
-        }
-    },
-    methods: {
-        checkAuthState() {
-            console.log('Calendar - Checking auth state, user prop:', this.user);
-        },
-        
-        loadUserEvents() {
-            if (!this.user) return;
-            
-            this.userEvents = [
-                { 
-                    title: 'Gehalt',
-                    start: new Date(2025, 8, 1),
-                    end: new Date(2025, 8, 1),
-                    startTime: '09:00',
-                    type: 'income',
-                    amount: 3500
-                },
-                {
-                    title: 'Spotify Abbuchung',
-                    start: new Date(2025, 8, 15),
-                    end: new Date(2025, 8, 15),
-                    startTime: '08:00',
-                    type: 'payment',
-                    amount: 9.99
-                },
-                {
-                    title: 'Netflix Abbuchung',
-                    start: new Date(2025, 8, 20),
-                    end: new Date(2025, 8, 20),
-                    startTime: '10:00',
-                    type: 'payment',
-                    amount: 15.99
-                },
-                {
-                    title: 'Arzttermin',
-                    start: new Date(2025, 8, 25),
-                    end: new Date(2025, 8, 25),
-                    startTime: '14:30',
-                    type: 'meeting'
-                }
-            ];
-        },
-        
-        formatCurrency(amount) {
-            if (!amount) return '';
-            return new Intl.NumberFormat('de-DE', {
-                style: 'currency',
-                currency: 'EUR'
-            }).format(amount);
-        },
-        
-        getEventClass(type) {
-            switch(type) {
-                case 'income':
-                    return 'event-income';
-                case 'payment':
-                    return 'event-payment';
-                case 'meeting':
-                    return 'event-meeting';
-                default:
-                    return 'event-general';
-            }
-        },
-        
-        closeAddEventModal() {
-            this.showAddEventModal = false;
-            this.resetNewEvent();
-        },
-        
-        resetNewEvent() {
-            this.newEvent = {
-                title: '',
-                date: '',
-                time: '',
-                type: 'general',
-                amount: null
-            };
-        },
-        
-        addEvent() {
-            if (!this.newEvent.title || !this.newEvent.date) {
-                alert('Bitte füllen Sie alle Pflichtfelder aus.');
-                return;
-            }
-            
-            const eventDate = new Date(this.newEvent.date);
-            const newEvent = {
-                title: this.newEvent.title,
-                start: eventDate,
-                end: eventDate,
-                startTime: this.newEvent.time || null,
-                type: this.newEvent.type,
-                amount: this.newEvent.amount ? parseFloat(this.newEvent.amount) : null
-            };
-            
-            this.userEvents.push(newEvent);
-            this.closeAddEventModal();
-            
-            console.log('New event added:', newEvent);
-        }
+    function onDateChange(newDate) {
+      currentDate.value = newDate;
     }
-}
+
+    function onEventClick(item) {
+      console.log('Event clicked:', item);
+    }
+
+    function formatCurrency(amount) {
+      if (!amount) return '';
+      return new Intl.NumberFormat('de-DE', {
+        style: 'currency',
+        currency: 'EUR'
+      }).format(amount);
+    }
+
+    function getEventClass(type) {
+      switch(type) {
+        case 'income': return 'event-income';
+        case 'payment': return 'event-payment';
+        case 'meeting': return 'event-meeting';
+        default: return 'event-general';
+      }
+    }
+
+    function resetNewEvent() {
+      newEvent.value = {
+        title: '',
+        date: '',
+        time: '',
+        type: 'general',
+        amount: null
+      };
+    }
+
+    function closeAddEventModal() {
+      showAddEventModal.value = false;
+      resetNewEvent();
+    }
+
+    function addEvent() {
+      if (!newEvent.value.title || !newEvent.value.date) {
+        alert('Bitte füllen Sie alle Pflichtfelder aus.');
+        return;
+      }
+      const eventDate = new Date(newEvent.value.date);
+      userEvents.value.push({
+        title: newEvent.value.title,
+        start: eventDate,
+        end: eventDate,
+        startTime: newEvent.value.time || null,
+        type: newEvent.value.type,
+        amount: newEvent.value.amount ? parseFloat(newEvent.value.amount) : null
+      });
+      closeAddEventModal();
+    }
+
+    function loadUserEvents() {
+      if (!user.value) return;
+      // Beispiel-Daten, später ggf. von API laden
+      userEvents.value = [
+        { title: 'Gehalt', start: new Date(2025, 8, 1), end: new Date(2025, 8, 1), startTime: '09:00', type: 'income', amount: 3500 },
+        { title: 'Spotify Abbuchung', start: new Date(2025, 8, 15), end: new Date(2025, 8, 15), startTime: '08:00', type: 'payment', amount: 9.99 },
+        { title: 'Netflix Abbuchung', start: new Date(2025, 8, 20), end: new Date(2025, 8, 20), startTime: '10:00', type: 'payment', amount: 15.99 },
+        { title: 'Arzttermin', start: new Date(2025, 8, 25), end: new Date(2025, 8, 25), startTime: '14:30', type: 'meeting' }
+      ];
+    }
+
+    onMounted(async () => {
+      await store.dispatch('currentUser/checkAuthState');
+      if (user.value) loadUserEvents();
+    });
+
+    return {
+      currentDate,
+      user,
+      showAddEventModal,
+      newEvent,
+      userEvents,
+      onDateChange,
+      onEventClick,
+      formatCurrency,
+      getEventClass,
+      closeAddEventModal,
+      addEvent,
+      loadUserEvents
+    };
+  }
+};
 </script>
+
 
 <style lang="scss">
 .calendar-container {

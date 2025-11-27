@@ -30,9 +30,9 @@
 </template>
 
 <script>
-import PopUp from './PopUp.vue'
-import InputText from 'primevue/inputtext'
-import authApi from '../api/resources/auth.js'
+import PopUp from './PopUp.vue';
+import InputText from 'primevue/inputtext';
+import userManager from '../services/userManager';
 
 export default {
   name: "PopUp-Register",
@@ -49,57 +49,58 @@ export default {
   },
   methods: {
     async register() {
-      this.error = null
+      this.error = null;
 
+      // Validation
       if (!this.email || !this.username || !this.password) {
-        this.error = "Bitte füllen Sie alle Pflichtfelder aus."
-        return
+        this.error = "Bitte füllen Sie alle Pflichtfelder aus.";
+        return;
       }
       if (this.password.length < 6) {
-        this.error = "Das Passwort muss mindestens 6 Zeichen lang sein."
-        return
+        this.error = "Das Passwort muss mindestens 6 Zeichen lang sein.";
+        return;
       }
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(this.email)) {
-        this.error = "Bitte geben Sie eine gültige E-Mail-Adresse ein."
-        return
+        this.error = "Bitte geben Sie eine gültige E-Mail-Adresse ein.";
+        return;
       }
 
-      this.loading = true
+      this.loading = true;
 
       try {
-        const data = await authApi.signUp({
+        const data = await userManager.registerUser({
           email: this.email,
           password: this.password,
           username: this.username,
           salary: this.salary
-        })
+        });
 
         if (data.user) {
           if (!data.session) {
-            this.error = "Registrierung erfolgreich! Bitte überprüfen Sie Ihre E-Mail für die Bestätigung."
-            setTimeout(() => this.$emit('close-popup'), 3000)
+            this.error = "Registrierung erfolgreich! Bitte überprüfen Sie Ihre E-Mail für die Bestätigung.";
+            setTimeout(() => this.$emit('close-popup'), 3000);
           } else {
-            alert("Registrierung erfolgreich!")
-            this.$emit('close-popup')
+            alert("Registrierung erfolgreich!");
+            this.$emit('close-popup');
           }
         }
       } catch (err) {
-        console.error("Registration error:", err)
-        this.error = this.getErrorMessage(err)
+        console.error("Registration error:", err);
+        this.error = this.getErrorMessage(err);
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
 
     getErrorMessage(error) {
       switch (error.message) {
-        case 'User already registered': return 'Diese E-Mail-Adresse ist bereits registriert.'
-        case 'Password should be at least 6 characters': return 'Das Passwort muss mindestens 6 Zeichen lang sein.'
-        case 'Invalid email': return 'Ungültige E-Mail-Adresse.'
-        case 'Signup is disabled': return 'Registrierung ist derzeit deaktiviert.'
-        case 'Email rate limit exceeded': return 'Zu viele Registrierungsversuche. Bitte warten Sie einen Moment.'
-        default: return error.message || 'Ein unbekannter Fehler ist aufgetreten.'
+        case 'User already registered': return 'Diese E-Mail-Adresse ist bereits registriert.';
+        case 'Password should be at least 6 characters': return 'Das Passwort muss mindestens 6 Zeichen lang sein.';
+        case 'Invalid email': return 'Ungültige E-Mail-Adresse.';
+        case 'Signup is disabled': return 'Registrierung ist derzeit deaktiviert.';
+        case 'Email rate limit exceeded': return 'Zu viele Registrierungsversuche. Bitte warten Sie einen Moment.';
+        default: return error.message || 'Ein unbekannter Fehler ist aufgetreten.';
       }
     }
   }

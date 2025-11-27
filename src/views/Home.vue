@@ -1,91 +1,86 @@
 <template>
-    <div class="home">
-        <div v-if="!user" class="login-prompt">
-            <h2>Willkommen bei Subvision</h2>
-            <p>Bitte melden Sie sich an, um Ihre Finanzen zu verwalten.</p>
-            <div class="login-prompt__icon">
-                <i class="pi pi-lock" style="font-size: 4rem; color: #ccc;"></i>
-            </div>
-        </div>
-        
-        <div v-else>
-            <div class="home__header">
-                <div class="headline">
-                    Finanzen 
-                    <span v-if="userProfile" class="welcome-text">- Willkommen {{ userProfile.username }}!</span>
-                </div>
-                <button class="home__header__button" @click="showPopUp = true">Hinzufügen</button>
-            </div>
-            
-
-            <div v-if="userProfile && userProfile.salary" class="salary-info">
-                <div class="salary-card">
-                    <h3>Ihr monatliches Restgehalt</h3>
-                    <div class="salary-amount">{{ formatCurrency(userProfile.salary - amountSum) }}</div>
-                </div>
-            </div>
-            
-            <contracts-table />
-
-            <popup-add-contract 
-                v-if="showPopUp" 
-                @close-popup="showPopUp = false"
-                @contract-added="addContract">
-            </popup-add-contract>
-        </div>
+  <div class="home">
+    <div v-if="!isAuthenticated" class="login-prompt">
+      <h2>Willkommen bei Subvision</h2>
+      <p>Bitte melden Sie sich an, um Ihre Finanzen zu verwalten.</p>
+      <div class="login-prompt__icon">
+        <i class="pi pi-lock" style="font-size: 4rem; color: #ccc;"></i>
+      </div>
     </div>
+
+    <div v-else>
+      <div class="home__header">
+        <div class="headline">
+          Finanzen
+          <span v-if="userProfile" class="welcome-text">- Willkommen {{ userProfile.username }}!</span>
+        </div>
+        <button class="home__header__button" @click="showPopUp = true">Hinzufügen</button>
+      </div>
+
+      <div v-if="userProfile && userProfile.salary" class="salary-info">
+        <div class="salary-card">
+          <h3>Ihr monatliches Restgehalt</h3>
+          <div class="salary-amount">{{ formatCurrency(userProfile.salary - amountSum) }}</div>
+        </div>
+      </div>
+
+      <contracts-table />
+
+      <popup-add-contract
+        v-if="showPopUp"
+        @close-popup="showPopUp = false"
+        @contract-added="addContract"
+      />
+    </div>
+  </div>
 </template>
 
 <script>
-   
 import PopupAddContract from '../PopUps/Popup-AddContract.vue';
-import { supabase } from '../database.js';
 import ContractsTable from '../components/Contracts-Table.vue';
+import { mapState, mapGetters, mapActions } from 'vuex';
 
 export default {
-    name: 'Home',
-    props: {
-        user: {
-            type: Object,
-            default: null
-        }
+  name: 'Home',
+  components: { PopupAddContract, ContractsTable },
+
+  data() {
+    return {
+      showPopUp: false,
+      amountSum: 0
+    };
+  },
+
+  computed: {
+    ...mapState('currentUser', ['user', 'profile']),
+    ...mapGetters('currentUser', ['isAuthenticated']),
+    userProfile() {
+      return this.profile;
+    }
+  },
+
+  created() {
+    // Prüfe Auth-Status und lade Profil automatisch über Store
+    this.checkAuthState();
+  },
+
+  methods: {
+    ...mapActions('currentUser', ['checkAuthState', 'logout']),
+
+    addContract(contract) {
+      // Summiere die Beträge der neuen Verträge
+      this.amountSum += contract.amount || 0;
+      // Optional: Profil könnte über Store automatisch aktualisiert werden
     },
-    data() {
-        return {
-            showPopUp: false, 
-            userProfile: null,
-            amountSum: 0
-        }
-    },
-    components: {
-        PopupAddContract,
-        ContractsTable
-    },
-    computed: {
-        isAuthenticated() {
-            return this.$store.getters['auth/isAuthenticated']
-        },
-        userProfile() {
-            return this.$store.getters['auth/userProfile']
-        },
-        isLoading() {
-            return this.$store.getters['auth/isLoading']
-        },
-    },
-    created() {
-        this.$store.dispatch('auth/checkAuthState')
-    },
-    methods: {
-        logout() {
-        this.$store.dispatch('auth/logout')
-        },
-        handleLoginSuccess(user) {
-            console.log('Login success handled in header:', user)
-            this.showLoginModal = false
-            this.$store.dispatch('auth/handleLoginSuccess', user)
-        },
-    },
-}
+
+    formatCurrency(amount) {
+      return new Intl.NumberFormat('de-DE', {
+        style: 'currency',
+        currency: 'EUR'
+      }).format(amount);
+    }
+  }
+};
 </script>
 
 <style lang="scss">
