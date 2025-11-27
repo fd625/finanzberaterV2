@@ -7,7 +7,6 @@ export const contractManager = {
         const { data, error } = await supabase
             .from("contracts")
             .select("*")
-            .order("date", { ascending: true });
 
         if (error) throw error;
         return data || [];

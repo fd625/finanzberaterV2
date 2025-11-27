@@ -24,6 +24,7 @@ export default {
 }
 .header {
   height: 100px; 
-  width: 100% 
+  width: 100%;
+  box-shadow: 0px 2px 7px #d3d3d3;
 }
 </style>

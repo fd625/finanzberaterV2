@@ -16,7 +16,18 @@
         </button>
       </div>
 
+      <ContractCalendar></ContractCalendar>
+<!-- 
       <CalendarView
+			:show-date="showDate"
+			class="theme-default">
+			<template #header="{ headerProps }">
+				<CalendarViewHeader
+					@input="setShowDate" :header-props="headerProps"/>
+			</template>
+		</CalendarView> -->
+
+      <!-- <CalendarView
         :show-date="currentDate"
         display-period-uom="month"
         :display-period-count="1"
@@ -43,7 +54,7 @@
             <div v-if="item.amount" class="event-amount">{{ formatCurrency(item.amount) }}</div>
           </div>
         </template>
-      </CalendarView>
+      </CalendarView> -->
 
       <div v-if="showAddEventModal" class="modal-overlay" @click="closeAddEventModal">
         <div class="event-modal" @click.stop>
@@ -90,123 +101,129 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue';
-import { useStore } from 'vuex';
-import { CalendarView, CalendarViewHeader } from "vue-simple-calendar";
-import "../../node_modules/vue-simple-calendar/dist/vue-simple-calendar.css"
+import { mapState } from 'vuex';
+import contractsManager from '../services/contractManager.js';
+import ContractCalendar from '../components/Contract-Calendar.vue';
+// import { CalendarView, CalendarViewHeader } from "vue-simple-calendar";
+// import "vue-simple-calendar/dist/vue-simple-calendar.css";
+// //import "vue-simple-calendar/dist/themes/default.css";
 
 export default {
   name: "Calendar",
   components: {
-    CalendarView,
-    CalendarViewHeader,
+    ContractCalendar
   },
-  setup() {
-    const store = useStore();
-    const currentDate = ref(new Date());
-    const showAddEventModal = ref(false);
-    const newEvent = ref({
-      title: '',
-      date: '',
-      time: '',
-      type: 'general',
-      amount: null
-    });
-    const userEvents = ref([]);
-
-    const user = computed(() => store.state.currentUser.user);
-
-    function onDateChange(newDate) {
-      currentDate.value = newDate;
+  data() {
+    return {
+      currentDate: new Date(),
+      showAddEventModal: false,
+      newEvent: {
+        title: '',
+        date: '',
+        time: '',
+        type: 'general',
+        amount: null
+      },
+      userEvents: [],
+      showDate: new Date()
+    };
+  },
+  computed: {
+    ...mapState('currentUser', ['user']),
+  },
+  watch: {
+    user: {
+      handler(newUser) {
+        if (newUser) {
+          this.loadUserEvents();
+        } else {
+          this.userEvents = [];
+        }
+      },
+      immediate: true
     }
-
-    function onEventClick(item) {
+  },
+  methods: {
+    setShowDate(d) {
+				this.showDate = d;
+			},
+    async loadUserEvents() {
+      if (!this.user) return;
+      try {
+        const contracts = await contractsManager.getAllContracts(this.user.id);
+        // Konvertiere Contracts in Calendar-Events
+        this.userEvents = contracts.map(contract => ({
+          title: contract.title,
+          start: new Date(contract.startDate),
+          end: new Date(contract.endDate || contract.startDate),
+          startTime: contract.startTime || null,
+          type: contract.type || 'general',
+          amount: contract.amount ? parseFloat(contract.amount) : null
+        }));
+      } catch (err) {
+        console.error('Fehler beim Laden der Contracts:', err);
+        this.userEvents = [];
+      }
+    },
+    onDateChange(newDate) {
+      this.currentDate = newDate;
+    },
+    onEventClick(item) {
       console.log('Event clicked:', item);
-    }
-
-    function formatCurrency(amount) {
+    },
+    formatCurrency(amount) {
       if (!amount) return '';
       return new Intl.NumberFormat('de-DE', {
         style: 'currency',
         currency: 'EUR'
       }).format(amount);
-    }
-
-    function getEventClass(type) {
+    },
+    getEventClass(type) {
       switch(type) {
         case 'income': return 'event-income';
         case 'payment': return 'event-payment';
         case 'meeting': return 'event-meeting';
         default: return 'event-general';
       }
-    }
-
-    function resetNewEvent() {
-      newEvent.value = {
+    },
+    resetNewEvent() {
+      this.newEvent = {
         title: '',
         date: '',
         time: '',
         type: 'general',
         amount: null
       };
-    }
-
-    function closeAddEventModal() {
-      showAddEventModal.value = false;
-      resetNewEvent();
-    }
-
-    function addEvent() {
-      if (!newEvent.value.title || !newEvent.value.date) {
+    },
+    closeAddEventModal() {
+      this.showAddEventModal = false;
+      this.resetNewEvent();
+    },
+    addEvent() {
+      if (!this.newEvent.title || !this.newEvent.date) {
         alert('Bitte füllen Sie alle Pflichtfelder aus.');
         return;
       }
-      const eventDate = new Date(newEvent.value.date);
-      userEvents.value.push({
-        title: newEvent.value.title,
+      const eventDate = new Date(this.newEvent.date);
+      this.userEvents.push({
+        title: this.newEvent.title,
         start: eventDate,
         end: eventDate,
-        startTime: newEvent.value.time || null,
-        type: newEvent.value.type,
-        amount: newEvent.value.amount ? parseFloat(newEvent.value.amount) : null
+        startTime: this.newEvent.time || null,
+        type: this.newEvent.type,
+        amount: this.newEvent.amount ? parseFloat(this.newEvent.amount) : null
       });
-      closeAddEventModal();
+      this.closeAddEventModal();
     }
-
-    function loadUserEvents() {
-      if (!user.value) return;
-      // Beispiel-Daten, später ggf. von API laden
-      userEvents.value = [
-        { title: 'Gehalt', start: new Date(2025, 8, 1), end: new Date(2025, 8, 1), startTime: '09:00', type: 'income', amount: 3500 },
-        { title: 'Spotify Abbuchung', start: new Date(2025, 8, 15), end: new Date(2025, 8, 15), startTime: '08:00', type: 'payment', amount: 9.99 },
-        { title: 'Netflix Abbuchung', start: new Date(2025, 8, 20), end: new Date(2025, 8, 20), startTime: '10:00', type: 'payment', amount: 15.99 },
-        { title: 'Arzttermin', start: new Date(2025, 8, 25), end: new Date(2025, 8, 25), startTime: '14:30', type: 'meeting' }
-      ];
+  },
+  async mounted() {
+    await this.$store.dispatch('currentUser/checkAuthState');
+    if (this.user) {
+      this.loadUserEvents();
     }
-
-    onMounted(async () => {
-      await store.dispatch('currentUser/checkAuthState');
-      if (user.value) loadUserEvents();
-    });
-
-    return {
-      currentDate,
-      user,
-      showAddEventModal,
-      newEvent,
-      userEvents,
-      onDateChange,
-      onEventClick,
-      formatCurrency,
-      getEventClass,
-      closeAddEventModal,
-      addEvent,
-      loadUserEvents
-    };
   }
 };
 </script>
-
 
 <style lang="scss">
 .calendar-container {
