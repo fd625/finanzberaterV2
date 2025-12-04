@@ -13,12 +13,12 @@
                 <div class="headline">Mein Profil</div>
                 <div class="profile-info">
                     <span class="email">{{ user.email }}</span>
-                    <span class="join-date">Mitglied seit: {{ formatJoinDate(user.created_at) }}</span>
+                    <span class="join-date">Mitglied seit: {{ formatJoinDate }}</span>
                 </div>
             </div>
             
             <div class="profile-cards">
-                
+                <!-- Basic Information Card -->
                 <div class="profile-card">
                     <h3>
                         <i class="pi pi-user"></i>
@@ -32,7 +32,7 @@
                         </div>
                         <div class="info-row">
                             <label>Gehalt:</label>
-                            <span>{{ userProfile?.salary ? formatCurrency(userProfile.salary) : 'Nicht gesetzt' }}</span>
+                            <span>{{ formattedSalary }}</span>
                         </div>
                         <button class="edit-btn" @click="startEditingBasic">
                             <i class="pi pi-pencil"></i> Bearbeiten
@@ -68,7 +68,7 @@
                         <div class="button-group">
                             <button 
                                 class="save-btn" 
-                                @click="saveBasicInfo" 
+                                @click="handleSaveBasicInfo" 
                                 :disabled="loadingBasic">
                                 <i class="pi pi-check"></i> 
                                 {{ loadingBasic ? 'Speichert...' : 'Speichern' }}
@@ -83,6 +83,7 @@
                     </div>
                 </div>
                 
+                <!-- Password Change Card -->
                 <div class="profile-card">
                     <h3>
                         <i class="pi pi-lock"></i>
@@ -127,7 +128,7 @@
                         <div class="button-group">
                             <button 
                                 class="save-btn" 
-                                @click="changePassword" 
+                                @click="handleChangePassword" 
                                 :disabled="loadingPassword">
                                 <i class="pi pi-check"></i> 
                                 {{ loadingPassword ? 'Ändert...' : 'Passwort ändern' }}
@@ -141,15 +142,16 @@
                         </div>
                     </div>
                 </div>
-                
-                
             </div>
         </div>
     </div>
 </template>
 
 <script>
-import { supabase } from '../database.js';
+// Import services
+import { profileService } from '../services/profileService';
+import { authService } from '../services/authService';
+import { formatUtils } from '../utils/formatUtils';
 
 export default {
     name: 'Profile',
@@ -163,6 +165,7 @@ export default {
         return {
             userProfile: null,
             
+            // Basic info editing state
             editingBasic: false,
             loadingBasic: false,
             basicError: null,
@@ -171,6 +174,7 @@ export default {
                 salary: null
             },
             
+            // Password change state
             changingPassword: false,
             loadingPassword: false,
             passwordError: null,
@@ -179,6 +183,16 @@ export default {
                 newPassword: '',
                 confirmPassword: ''
             }
+        }
+    },
+    computed: {
+        formatJoinDate() {
+            return formatUtils.formatLongDate(this.user?.created_at);
+        },
+        formattedSalary() {
+            return this.userProfile?.salary 
+                ? formatUtils.formatCurrency(this.userProfile.salary) 
+                : 'Nicht gesetzt';
         }
     },
     watch: {
@@ -198,40 +212,13 @@ export default {
             if (!this.user) return;
             
             try {
-                const { data, error } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', this.user.id)
-                    .single();
-                
-                if (error && error.code !== 'PGRST116') {
-                    console.error('Error loading user profile:', error);
-                } else if (data) {
-                    this.userProfile = data;
-                }
-                
+                this.userProfile = await profileService.getProfileById(this.user.id);
             } catch (error) {
-                console.error('Error loading user profile:', error);
+                console.error('Error loading profile:', error);
             }
         },
         
-        formatJoinDate(dateString) {
-            if (!dateString) return '';
-            const date = new Date(dateString);
-            return date.toLocaleDateString('de-DE', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-        },
-        
-        formatCurrency(amount) {
-            return new Intl.NumberFormat('de-DE', {
-                style: 'currency',
-                currency: 'EUR'
-            }).format(amount);
-        },
-        
+        // Basic info editing methods
         startEditingBasic() {
             this.editBasic.username = this.userProfile?.username || '';
             this.editBasic.salary = this.userProfile?.salary || null;
@@ -245,16 +232,20 @@ export default {
             this.editBasic = { username: '', salary: null };
         },
         
-        async saveBasicInfo() {
+        async handleSaveBasicInfo() {
             this.basicError = null;
             
-            if (!this.editBasic.username.trim()) {
-                this.basicError = 'Benutzername ist erforderlich.';
+            // Validate username
+            const usernameValidation = profileService.validateUsername(this.editBasic.username);
+            if (!usernameValidation.valid) {
+                this.basicError = usernameValidation.error;
                 return;
             }
             
-            if (this.editBasic.salary && this.editBasic.salary < 0) {
-                this.basicError = 'Das Gehalt muss positiv sein.';
+            // Validate salary
+            const salaryValidation = profileService.validateSalary(this.editBasic.salary);
+            if (!salaryValidation.valid) {
+                this.basicError = salaryValidation.error;
                 return;
             }
             
@@ -263,30 +254,21 @@ export default {
             try {
                 const updateData = {
                     username: this.editBasic.username.trim(),
-                    salary: this.editBasic.salary ? parseFloat(this.editBasic.salary) : null,
-                    updated_at: new Date().toISOString()
+                    salary: formatUtils.parseCurrencyInput(this.editBasic.salary)
                 };
                 
-                const { data, error } = await supabase
-                    .from('profiles')
-                    .update(updateData)
-                    .eq('id', this.user.id)
-                    .select()
-                    .single();
-                
-                if (error) throw error;
-                
-                this.userProfile = data;
+                this.userProfile = await profileService.updateProfile(this.user.id, updateData);
                 this.editingBasic = false;
                 
             } catch (error) {
                 console.error('Error updating profile:', error);
-                this.basicError = 'Fehler beim Speichern. Versuchen Sie es erneut.';
+                this.basicError = error.message || 'Fehler beim Speichern. Versuchen Sie es erneut.';
             } finally {
                 this.loadingBasic = false;
             }
         },
         
+        // Password change methods
         startChangingPassword() {
             this.changingPassword = true;
             this.passwordError = null;
@@ -301,34 +283,25 @@ export default {
             this.passwordData = { newPassword: '', confirmPassword: '' };
         },
         
-        async changePassword() {
+        async handleChangePassword() {
             this.passwordError = null;
             this.passwordSuccess = null;
             
-            if (!this.passwordData.newPassword) {
-                this.passwordError = 'Neues Passwort ist erforderlich.';
-                return;
-            }
+            // Validate password
+            const validation = authService.validatePassword(
+                this.passwordData.newPassword, 
+                this.passwordData.confirmPassword
+            );
             
-            if (this.passwordData.newPassword.length < 6) {
-                this.passwordError = 'Das Passwort muss mindestens 6 Zeichen lang sein.';
-                return;
-            }
-            
-            if (this.passwordData.newPassword !== this.passwordData.confirmPassword) {
-                this.passwordError = 'Die Passwörter stimmen nicht überein.';
+            if (!validation.valid) {
+                this.passwordError = validation.error;
                 return;
             }
             
             this.loadingPassword = true;
             
             try {
-                const { error } = await supabase.auth.updateUser({
-                    password: this.passwordData.newPassword
-                });
-                
-                if (error) throw error;
-                
+                await authService.changePassword(this.passwordData.newPassword);
                 this.passwordSuccess = 'Passwort erfolgreich geändert!';
                 
                 setTimeout(() => {
@@ -337,12 +310,12 @@ export default {
                 
             } catch (error) {
                 console.error('Error changing password:', error);
-                this.passwordError = 'Fehler beim Ändern des Passworts. Versuchen Sie es erneut.';
+                this.passwordError = error.message || 'Fehler beim Ändern des Passworts.';
             } finally {
                 this.loadingPassword = false;
             }
-        },
         }
+    }
 }
 </script>
 
@@ -413,11 +386,6 @@ export default {
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         border: 1px solid #e0e0e0;
         
-        &.danger-card {
-            border-color: #dc3545;
-            background: #fff5f5;
-        }
-        
         h3 {
             display: flex;
             align-items: center;
@@ -428,10 +396,6 @@ export default {
             
             i {
                 color: #417d41;
-                
-                .danger-card & {
-                    color: #dc3545;
-                }
             }
         }
         
@@ -496,7 +460,7 @@ export default {
             margin-top: 20px;
         }
         
-        .edit-btn, .save-btn, .cancel-btn, .danger-btn {
+        .edit-btn, .save-btn, .cancel-btn {
             display: flex;
             align-items: center;
             gap: 8px;
@@ -542,6 +506,7 @@ export default {
                 box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             }
         }
+        
         .error-message {
             background-color: #fee;
             color: #c00;

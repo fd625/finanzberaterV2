@@ -17,17 +17,16 @@
                 <button class="home__header__button" @click="showPopUp = true">Hinzufügen</button>
             </div>
             
-
             <div v-if="userProfile && userProfile.salary" class="salary-info">
                 <div class="salary-card">
                     <h3>Ihr monatliches Restgehalt</h3>
-                    <div class="salary-amount">{{ formatCurrency(userProfile.salary - amountSum) }}</div>
+                    <div class="salary-amount">{{ remainingSalary }}</div>
                 </div>
             </div>
             
             <div class="home-table">
                 <DataTable 
-                    :value="contracts" 
+                    :value="displayContracts" 
                     scrollable 
                     scrollHeight="400px" 
                     paginator 
@@ -36,7 +35,7 @@
                     :rows="5" 
                     :rowsPerPageOptions="[5, 10, 20, 50]"
                     filterDisplay="menu"
-                    :globalFilterFields="['company', 'description', 'date', 'amount','scheduled_payment', ]">
+                    :globalFilterFields="['company', 'description', 'date', 'amount','scheduled_payment']">
                     
                     <template #header>
                         <div class="flex justify-between home-table__header">
@@ -47,11 +46,11 @@
                                 variant="outlined" 
                                 @click="clearFilter()" 
                             />
-                                <InputText 
-                                    v-model="filters['global'].value" 
-                                    placeholder="Suche..." 
-                                    style="width: 30% !important; margin: 0 !important;"
-                                />
+                            <InputText 
+                                v-model="filters['global'].value" 
+                                placeholder="Suche..." 
+                                style="width: 30% !important; margin: 0 !important;"
+                            />
                         </div>
                     </template>
                     <template #empty> Keine Verträge gefunden. </template>
@@ -82,13 +81,10 @@
                     </Column>
                     
                     <Column 
-                        field="amount" 
+                        field="formattedAmount" 
                         header="Betrag" 
                         style="min-width: 120px" 
                         sortable>
-                        <template #body="slotProps">
-                            {{ formatCurrency(slotProps.data.amount) }}
-                        </template>
                     </Column>
                     
                     <Column 
@@ -105,7 +101,7 @@
                         <template #body="slotProps">
                             <button 
                                 class="action-btn delete-btn" 
-                                @click="deleteContract(slotProps.data.id)"
+                                @click="handleDeleteContract(slotProps.data.id)"
                                 title="Vertrag löschen">
                                 <i class="pi pi-trash"></i>
                             </button>
@@ -117,7 +113,7 @@
             <popup-add-contract 
                 v-if="showPopUp" 
                 @close-popup="showPopUp = false"
-                @contract-added="addContract">
+                @contract-added="handleContractAdded">
             </popup-add-contract>
         </div>
     </div>
@@ -129,12 +125,16 @@ import Column from 'primevue/column';
 import ColumnGroup from 'primevue/columngroup';   
 import Row from 'primevue/row';      
 import PopupAddContract from '../PopUps/Popup-AddContract.vue';
-import { supabase } from '../database.js';
 import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
+
+// Import services
+import { contractService } from '../services/contractService';
+import { profileService } from '../services/profileService';
+import { formatUtils } from '../utils/formatUtils';
 
 export default {
     name: 'Home',
@@ -150,7 +150,7 @@ export default {
             contracts: [],
             userProfile: null,
             filters: null,
-            amountSum: 0
+            loading: false
         }
     },
     components: {
@@ -164,14 +164,30 @@ export default {
         InputText,
         Button
     },
+    computed: {
+        displayContracts() {
+            return this.contracts.map(contract => 
+                formatUtils.formatContractForDisplay(contract)
+            );
+        },
+        totalContractAmount() {
+            return contractService.calculateTotalAmount(this.contracts);
+        },
+        remainingSalary() {
+            const remaining = profileService.calculateRemainingSalary(
+                this.userProfile?.salary, 
+                this.totalContractAmount
+            );
+            return formatUtils.formatCurrency(remaining);
+        }
+    },
     watch: {
         user: {
             handler(newUser) {
                 if (newUser) {
                     this.loadUserData();
                 } else {
-                    this.contracts = [];
-                    this.userProfile = null;
+                    this.resetData();
                 }
             },
             immediate: true
@@ -185,22 +201,23 @@ export default {
             if (!this.user) return;
             
             try {
-                const { data: profile, error: profileError } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', this.user.id)
-                    .single();
-                
-                if (profileError && profileError.code !== 'PGRST116') {
-                    console.error('Error loading user profile:', profileError);
-                } else if (profile) {
-                    this.userProfile = profile;
-                }
-                
-                await this.loadContracts();
-                
+                this.loading = true;
+                await Promise.all([
+                    this.loadUserProfile(),
+                    this.loadContracts()
+                ]);
             } catch (error) {
                 console.error('Error loading user data:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+        
+        async loadUserProfile() {
+            try {
+                this.userProfile = await profileService.getProfileById(this.user.id);
+            } catch (error) {
+                console.error('Error loading profile:', error);
             }
         },
         
@@ -208,106 +225,59 @@ export default {
             if (!this.user) return;
             
             try {
-                const { data: contracts, error } = await supabase
-                    .from('contracts')
-                    .select('*')
-                    .eq('user_id', this.user.id)
-                    .order('created_at', { ascending: false });
-                
-                if (error) {
-                    console.error('Error loading contracts:', error);
-                } else {
-                    this.contracts = contracts.map(contract => ({
-                        ...contract,
-                        date: this.formatDisplayDate(contract.start_date),
-                        start_date: contract.start_date,
-                        end_date: contract.end_date
-                    }));
-                    this.amountSum = 0;
-                    this.contracts.forEach(x => {
-                        this.amountSum += x.amount;
-                    })
-                    console.log("amount sum",this.amountSum);
-                }
-                
+                this.contracts = await contractService.getContractsByUserId(this.user.id);
             } catch (error) {
                 console.error('Error loading contracts:', error);
+                this.contracts = [];
             }
         },
         
-        formatDisplayDate(dateString) {
-            if (!dateString) return '';
-            
-            const date = new Date(dateString);
-            return date.toLocaleDateString('de-DE', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit'
-            });
-        },
-        
-        formatCurrency(amount) {
-            return new Intl.NumberFormat('de-DE', {
-                style: 'currency',
-                currency: 'EUR'
-            }).format(amount);
-        },
-        
-        async addContract(newContract) {
+        async handleContractAdded() {
             await this.loadContracts();
         },
         
-        async deleteContract(contractId) {
+        async handleDeleteContract(contractId) {
             if (!confirm('Möchten Sie diesen Vertrag wirklich löschen?')) {
                 return;
             }
             
             try {
-                const { error } = await supabase
-                    .from('contracts')
-                    .delete()
-                    .eq('id', contractId)
-                    .eq('user_id', this.user.id);
-                
-                if (error) {
-                    console.error('Error deleting contract:', error);
-                    alert('Fehler beim Löschen des Vertrags.');
-                } else {
-                    await this.loadContracts();
-                }
-                
+                await contractService.deleteContract(contractId, this.user.id);
+                await this.loadContracts();
             } catch (error) {
                 console.error('Error deleting contract:', error);
                 alert('Fehler beim Löschen des Vertrags.');
             }
         },
+        
+        resetData() {
+            this.contracts = [];
+            this.userProfile = null;
+        },
+        
         clearFilter() {
             this.initFilters();
         },
+        
         initFilters() {
             this.filters = {
                 global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-
                 company: { 
                     operator: FilterOperator.AND, 
                     constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] 
                 },
-
                 description: { 
                     operator: FilterOperator.AND, 
                     constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }] 
                 },
-
                 date: { 
                     operator: FilterOperator.AND, 
                     constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] 
                 },
-
                 amount: { 
                     operator: FilterOperator.AND, 
                     constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] 
                 },
-
                 scheduled_payment: { 
                     operator: FilterOperator.AND, 
                     constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] 
@@ -382,7 +352,6 @@ export default {
     }
     
     .salary-info {
-        
         .salary-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
