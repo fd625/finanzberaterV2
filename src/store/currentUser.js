@@ -28,6 +28,10 @@ export const currentUser = {
     }
   },
   actions: {
+    async handleLoginSuccess({ commit }, user) {
+      commit('setUser', user);
+      commit('setProfile', user);
+    },
     async checkAuthState({ commit, dispatch }) {
       commit('SET_LOADING', true);
       try {

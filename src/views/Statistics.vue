@@ -1,37 +1,43 @@
 <template>
     <div class="home">
-        <h2>Statistiken - Dein Überblick!</h2>
-        <h6>
-            Hier bekommst du alle wichtigen Einblicke zu deinen Ausgaben, Verträgen und deinem verfügbaren Budget. Die Statistiken zeigen dir auf einen Blick, was wirklich zählt, wo dein Geld hingeht und wo Sparpotenzial steckt – übersichtlich, verständlich und immer aktuell.
-        </h6>
-        <tipps-message-box />
-        <div class="card__container">
-            <div class="card --bar">
-                <h5>Deine wichtigsten Verträge im Überblick:</h5>
-                <h6>
-                    Diese Statistik zeigt dir, welche deiner Verträge und Abos am wichtigsten sind. Anhand der festgelegten Wichtigkeit erkennst du schnell, auf welche Ausgaben du verzichten kannst.
-                </h6>
-                <Chart 
-                    type="bar" 
-                    :data="barChartData" 
-                    :options="barChartOptions" 
-                    style="height: 350px" 
-                />
-            </div>
-             <div class="card --pie">
-                <h5>Budgetverteilung:</h5>
-                <h6>
-                    „Dieses Diagramm zeigt dir, wie sich deine gesamten Ausgaben im Verhältnis zu deinem verbleibenden Budget verteilen. So erkennst du auf einen Blick, wie viel Geld für Verpflichtungen draufgeht – und wie viel wirklich übrig bleibt.“
-                </h6>
-                <div style="display: flex; justify-content: center;">
+        <authMessageBox v-if="!isAuthenticated" />
+        <div v-else>
+            <h2>Statistiken - Dein Überblick!</h2>
+            <h6>
+                Hier bekommst du alle wichtigen Einblicke zu deinen Ausgaben, Verträgen und deinem verfügbaren Budget. Die Statistiken zeigen dir auf einen Blick, was wirklich zählt, wo dein Geld hingeht und wo Sparpotenzial steckt – übersichtlich, verständlich und immer aktuell.
+            </h6>
+            <tipps-message-box />
+            <div class="card__container">
+                <div class="card --bar">
+                    <h5>Deine wichtigsten Verträge im Überblick:</h5>
+                    <h6>
+                        Diese Statistik zeigt dir, welche deiner Verträge und Abos am wichtigsten sind. Anhand der festgelegten Wichtigkeit erkennst du schnell, auf welche Ausgaben du verzichten kannst.
+                    </h6>
                     <Chart 
-                        style="height: 350px"
-                        type="pie" 
-                        :data="pieChartData" 
-                        :options="pieChartOptions" 
-                        class="pie"
+                        type="bar" 
+                        :data="barChartData" 
+                        :options="barChartOptions" 
+                        style="height: 350px" 
                     />
                 </div>
+                 <div class="card --pie">
+                    <h5>Budgetverteilung:</h5>
+                    <h6>
+                        „Dieses Diagramm zeigt dir, wie sich deine gesamten Ausgaben im Verhältnis zu deinem verbleibenden Budget verteilen. So erkennst du auf einen Blick, wie viel Geld für Verpflichtungen draufgeht – und wie viel wirklich übrig bleibt.“
+                    </h6>
+                    <div style="display: flex; justify-content: center;">
+                        <Chart 
+                            style="height: 350px"
+                            type="pie" 
+                            :data="pieChartData" 
+                            :options="pieChartOptions" 
+                            class="pie"
+                        />
+                    </div>
+                </div>
+            </div>
+            <div>
+                <Achievements />
             </div>
         </div>
     </div>
@@ -42,6 +48,8 @@ import Chart from 'primevue/chart';
 import contractManager from '../services/contractManager';
 import { mapGetters, mapActions} from 'vuex';
 import tippsMessageBox from '../components/tipps-message-box.vue';
+import authMessageBox from '../components/auth-message-box.vue';
+import Achievements from '../components/Achievements.vue';
 
 export default {
     name: "Statistics",
@@ -64,13 +72,15 @@ export default {
     },
     components: {
         Chart,
-        tippsMessageBox
+        tippsMessageBox,
+        authMessageBox,
+        Achievements
     },
     mounted() {
         this.loadContracts();
     },
     computed: {
-        ...mapGetters('currentUser', ['remainingSalary']),
+        ...mapGetters('currentUser', ['remainingSalary','isAuthenticated']),
         remainingSalary() {
             return this.$store.getters["currentUser/remainingSalary"];
         }

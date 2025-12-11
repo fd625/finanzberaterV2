@@ -37,7 +37,6 @@ import authMessageBox from '../components/auth-message-box.vue';
 export default {
   name: 'Home',
   components: { ContractsTable, PopupFormContract,authMessageBox },
-
   data() {
     return {
       showPopUp: false,
@@ -45,7 +44,6 @@ export default {
 
     };
   },
-
   computed: {
     ...mapState('currentUser', ['user', 'profile']),
     ...mapGetters('currentUser', ['isAuthenticated']),
@@ -57,7 +55,6 @@ export default {
     }
   },
   created() {
-    // Prüfe Auth-Status und lade Profil automatisch über Store
     this.checkAuthState();
   },
   methods: {

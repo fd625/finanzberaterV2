@@ -83,7 +83,15 @@ export default {
     handleLoginSuccess(user) {
       this.showLoginModal = false;
       // Dispatch login Erfolg an den Store
-      this.$store.dispatch('currentUser/handleLoginSuccess', user);
+      this.$store.dispatch('currentUser/handleLoginSuccess', user)
+      .then(() => {
+        // Seite neu laden
+        window.location.reload();
+      })
+      .catch(err => {
+        console.error("Logout fehlgeschlagen:", err);
+      });
+      
     },
 
     logout() {
@@ -101,82 +109,119 @@ export default {
 </script>
 
 <style lang="scss">
-    .header {
-        width: 100%;
-        height: 100%;
+.header {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    
+    &__navigation {
         display: flex;
         flex-direction: row;
-        align-items: center;
-        
-        &__navigation {
-            display: flex;
-            flex-direction: row;
-            &__item {
-                margin: 0 20px; 
-                color: black;
-                text-decoration: none;
-                &:hover {
-                    cursor: pointer;
-                    text-decoration: underline;
-                }
+        &__item {
+            margin: 0 20px; 
+            color: black;
+            text-decoration: none;
+            &:hover {
+                cursor: pointer;
+                text-decoration: underline;
             }
         }
+    }
+    
+    &__user-section {
+        display: flex;
+        align-items: center;
+    }
+    
+    &__user-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-right: 40px;
+    }
+    
+    &__username {
+        font-weight: bold;
+        color: #333;
+    }
+    
+    &__logout-btn {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
         
-        &__user-section {
-            display: flex;
-            align-items: center;
+        &:hover {
+            background-color: #c82333;
+            box-shadow: 0 0 5px gray;
         }
-        
-        &__user-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
+    }
+    
+    &__user-button {
+        &__icon {
             margin-right: 40px;
-        }
-        
-        &__username {
-            font-weight: bold;
-            color: #333;
-        }
-        
-        &__logout-btn {
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            
+            padding: 5px;
+            border: 1px solid;
+            border-radius: 50%;
             &:hover {
-                background-color: #c82333;
+                cursor: pointer;
                 box-shadow: 0 0 5px gray;
             }
         }
-        
-        &__user-button {
-            &__icon {
-                margin-right: 40px;
-                padding: 5px;
-                border: 1px solid;
-                border-radius: 50%;
-                &:hover {
-                    cursor: pointer;
-                    box-shadow: 0 0 5px gray;
-                }
+    }
+    
+    &__container {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    &__logo {
+        height: 100px;
+        width: 180px;
+        object-fit: contain;
+    }
+}
+/* Responsive Navigation */
+@media (max-width: 680px) {
+    .header {
+        padding: 0 10px;
+
+        &__logo {
+            height: 70px;
+            width: 130px;
+        }
+
+        &__navigation {
+            &__item {
+                margin: 0 10px;
+                font-size: 14px;
             }
         }
-        
-        &__container {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
+
+        &__username {
+            display: none;
         }
-        
-        &__logo {
-            height: 100px;
-            width: 180px;
-            object-fit: contain;
+
+        &__logout-btn {
+            padding: 4px 6px !important;
+
+        }
+
+        &__user-button__icon {
+            margin-right: 15px;
+            font-size: 18px;
+        }
+
+        &__container {
+            justify-content: space-between;
+            align-items: center;
         }
     }
+}
 </style>

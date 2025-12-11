@@ -1,6 +1,5 @@
 import { createApp } from 'vue'
-import './styles/style.css'
-import './styles/responsiveness.scss'
+import './style.css'
 import App from './App.vue'
 import router from './router'
 import "primeicons/primeicons.css"
