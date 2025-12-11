@@ -1,10 +1,10 @@
-import { createStore } from 'vuex';
-import { currentUser } from './currentUser';
-import { achievements } from "./achievements"
+import { createStore } from "vuex";
+import { currentUser } from "./currentUser";
+import { achievements } from "./achievements";
 
 export default createStore({
-  modules: {
-    currentUser,
-    achievements
-  }
+    modules: {
+        currentUser,
+        achievements
+    }
 });

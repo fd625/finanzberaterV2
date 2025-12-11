@@ -1,43 +1,53 @@
 <template>
-    <div class="popup">
-        <div class="popup__container">
-            <slot name="header">
-                <div class="popup__container__header">
-                    <div class="popup__container__header__label" v-if="label">
-                        {{ label }}
-                    </div>
-                    <i class="popup__container__header__close pi pi-times" @click="this.$emit('close-popup')"></i>
-                </div>
-            </slot>
-            <slot name="form">
-    
-            </slot>
-            <slot name="footer">
-                <div class="popup__container__footer">
-                    <button class="popup__container__footer__button --close" @click="$emit('close-popup')">
-                        Abbrechen
-                    </button>
-                    <button class="popup__container__footer__button --submit" @click="$emit('submit')">
-                       {{ submitHeadline }}
-                    </button>
-                </div>
-            </slot>
+  <div class="popup">
+    <div class="popup__container">
+      <slot name="header">
+        <div class="popup__container__header">
+          <div
+            v-if="label"
+            class="popup__container__header__label"
+          >
+            {{ label }}
+          </div>
+          <i
+            class="popup__container__header__close pi pi-times"
+            @click="$emit('close-popup')"
+          />
         </div>
+      </slot>
+      <slot name="form" />
+      <slot name="footer">
+        <div class="popup__container__footer">
+          <button
+            class="popup__container__footer__button --close"
+            @click="$emit('close-popup')"
+          >
+            Abbrechen
+          </button>
+          <button
+            class="popup__container__footer__button --submit"
+            @click="$emit('submit')"
+          >
+            {{ submitHeadline }}
+          </button>
+        </div>
+      </slot>
     </div>
+  </div>
 </template>
 
 <script>
 export default {
-    data() {
-        return {
-
-        }
-    },
     props: {
         label: String,
         submitHeadline: String
+    },
+    data() {
+        return {
+
+        };
     }
-}
+};
 </script>
 
 <style lang="scss">

@@ -1,13 +1,18 @@
 <template>
-    <div class="message-box" :style="backgroundStyle">
-        <p class="tip-text">{{ currentTip }}</p>
-    </div>
+  <div
+    class="message-box"
+    :style="backgroundStyle"
+  >
+    <p class="tip-text">
+      {{ currentTip }}
+    </p>
+  </div>
 </template>
     
     
 <script>
 export default {
-    name: "tipps-message-box",
+    name: "TippsMessageBox",
     data() {
         return {
             tips: [
@@ -54,7 +59,7 @@ export default {
         }, 10000);
     },
     beforeUnmount() {
-      clearInterval(this.intervalId);
+        clearInterval(this.intervalId);
     }
 };
 </script>

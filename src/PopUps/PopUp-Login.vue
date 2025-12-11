@@ -1,75 +1,83 @@
 <template>
-    <div class="login">
-        <PopUp 
-            class="login__popup" 
-            @close-popup="$emit('close-popup')" 
-            @submit="login"
-            label="Login"
-            submitHeadline="Login">
-            <template v-slot:form>
-                <div class="login__popup__container">
-                    <div v-if="error" class="error-message">
-                        {{ error }}
-                    </div>
+  <div class="login">
+    <PopUp 
+      class="login__popup" 
+      label="Login" 
+      submit-headline="Login"
+      @close-popup="$emit('close-popup')"
+      @submit="login"
+    >
+      <template #form>
+        <div class="login__popup__container">
+          <div
+            v-if="error"
+            class="error-message"
+          >
+            {{ error }}
+          </div>
                     
-                    <div v-if="loading" class="loading-message">
-                        Anmeldung läuft...
-                    </div>
+          <div
+            v-if="loading"
+            class="loading-message"
+          >
+            Anmeldung läuft...
+          </div>
                     
-                    <div>
-                        <p>E-Mail:</p>
-                        <InputText 
-                            name="email" 
-                            type="email" 
-                            placeholder="beispiel@email.com" 
-                            v-model="email" 
-                            :disabled="loading"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <p>Password:</p>
-                        <InputText 
-                            name="password" 
-                            type="password" 
-                            placeholder="Ihr Passwort" 
-                            v-model="password" 
-                            :disabled="loading"
-                            required
-                        />
-                    </div>
-                    <p class="login__popup__container__register" @click="$emit('register')">
-                        Noch kein Konto? Registrieren
-                    </p>
-                </div>
-            </template>
-        </PopUp>
-    </div>
+          <div>
+            <p>E-Mail:</p>
+            <InputText 
+              v-model="email" 
+              name="email" 
+              type="email" 
+              placeholder="beispiel@email.com" 
+              :disabled="loading"
+              required
+            />
+          </div>
+          <div>
+            <p>Password:</p>
+            <InputText 
+              v-model="password" 
+              name="password" 
+              type="password" 
+              placeholder="Ihr Passwort" 
+              :disabled="loading"
+              required
+            />
+          </div>
+          <p
+            class="login__popup__container__register"
+            @click="$emit('register')"
+          >
+            Noch kein Konto? Registrieren
+          </p>
+        </div>
+      </template>
+    </PopUp>
+  </div>
 </template>
 
 <script>
-import PopUp from './PopUp.vue';
-import InputText from 'primevue/inputtext';
-import { supabase } from '../database.js';
+import PopUp from "./PopUp.vue";
+import InputText from "primevue/inputtext";
+import { supabase } from "../database.js";
 
 export default { 
-    name: "PopUp-Login",
+    name: "PopUpLogin",
+    components: {
+        PopUp,
+        InputText
+    },
     data() {
         return {
             email: "",
             password: "",
             loading: false,
             error: null
-        }
-    },
-    components: {
-        PopUp,
-        InputText
+        };
     },
     methods: {
         async login() {
-            console.log("Login method called");
-            
             this.error = null;
             
             if (!this.email || !this.password) {
@@ -85,14 +93,10 @@ export default {
             
             this.loading = true;
             
-            console.log("Attempting to login with:", {
-                email: this.email
-            });
-            
             try {
                 const { data, error } = await supabase.auth.signInWithPassword({
                     email: this.email,
-                    password: this.password,
+                    password: this.password
                 });
                 
                 console.log("Supabase login response:", { data, error });
@@ -102,11 +106,8 @@ export default {
                     throw error;
                 }
                 
-                if (data.user) {
-                    console.log("Login successful:", data.user);
-                    
-                    this.$emit('close-popup');
-                    this.$emit('login-success', data.user);
+                    this.$emit("close-popup");
+                    this.$emit("login-success", data.user);
                 }
                 
             } catch (error) {
@@ -119,20 +120,20 @@ export default {
         
         getErrorMessage(error) {
             switch (error.message) {
-                case 'Invalid login credentials':
-                    return 'Ungültige E-Mail oder Passwort.';
-                case 'Email not confirmed':
-                    return 'Bitte bestätigen Sie Ihre E-Mail-Adresse.';
-                case 'Too many requests':
-                    return 'Zu viele Anmeldeversuche. Bitte warten Sie einen Moment.';
-                case 'Invalid email':
-                    return 'Ungültige E-Mail-Adresse.';
+                case "Invalid login credentials":
+                    return "Ungültige E-Mail oder Passwort.";
+                case "Email not confirmed":
+                    return "Bitte bestätigen Sie Ihre E-Mail-Adresse.";
+                case "Too many requests":
+                    return "Zu viele Anmeldeversuche. Bitte warten Sie einen Moment.";
+                case "Invalid email":
+                    return "Ungültige E-Mail-Adresse.";
                 default:
-                    return error.message || 'Ein unbekannter Fehler ist aufgetreten.';
+                    return error.message || "Ein unbekannter Fehler ist aufgetreten.";
             }
         }
     }
-}
+};
 </script>
 
 <style lang="scss">

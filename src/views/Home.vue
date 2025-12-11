@@ -6,19 +6,35 @@
       <div class="home__header">
         <div class="headline">
           Finanzen
-          <span v-if="userProfile" class="welcome-text">- Willkommen {{ userProfile.username }}!</span>
+          <span
+            v-if="userProfile"
+            class="welcome-text"
+          >- Willkommen {{ userProfile.username }}!</span>
         </div>
-        <button class="home__header__button" @click="showPopUp = true">Hinzufügen</button>
+        <button
+          class="home__header__button"
+          @click="showPopUp = true"
+        >
+          Hinzufügen
+        </button>
       </div>
 
-      <div v-if="userProfile && userProfile.salary" class="salary-info">
+      <div
+        v-if="userProfile && userProfile.salary"
+        class="salary-info"
+      >
         <div class="salary-card">
           <h3>Ihr monatliches Restgehalt</h3>
-          <div class="salary-amount">{{ remainingSalary }}</div>
+          <div class="salary-amount">
+            {{ remainingSalary }}
+          </div>
         </div>
       </div>
 
-      <contracts-table ref="table" @sum="x => amountSum = x" />
+      <contracts-table
+        ref="table"
+        @sum="x => amountSum = x"
+      />
 
       <PopupFormContract
         v-if="showPopUp"
@@ -29,47 +45,47 @@
 </template>
 
 <script>
-import PopupFormContract from '../PopUps/Popup-FormContract.vue';
-import ContractsTable from '../components/Contracts-Table.vue';
-import { mapState, mapGetters, mapActions } from 'vuex';
-import authMessageBox from '../components/auth-message-box.vue';
+import PopupFormContract from "../PopUps/Popup-FormContract.vue";
+import ContractsTable from "../components/Contracts-Table.vue";
+import { mapState, mapGetters, mapActions } from "vuex";
+import authMessageBox from "../components/auth-message-box.vue";
 
 export default {
-  name: 'Home',
-  components: { ContractsTable, PopupFormContract,authMessageBox },
-  data() {
-    return {
-      showPopUp: false,
-      amountSum: 0,
+    name: "Home",
+    components: { ContractsTable, PopupFormContract,authMessageBox },
+    data() {
+        return {
+            showPopUp: false,
+            amountSum: 0
 
-    };
-  },
-  computed: {
-    ...mapState('currentUser', ['user', 'profile']),
-    ...mapGetters('currentUser', ['isAuthenticated']),
-    remainingSalary() {
-        return this.formatCurrency(this.$store.getters["currentUser/remainingSalary"]);
+        };
     },
-    userProfile() {
-      return this.profile;
-    }
-  },
-  created() {
-    this.checkAuthState();
-  },
-  methods: {
-    ...mapActions('currentUser', ['checkAuthState', 'logout']),
-    closePopUp() {
-        this.showPopUp = false;
-        this.$refs.table.loadContracts();
+    computed: {
+        ...mapState("currentUser", ["user", "profile"]),
+        ...mapGetters("currentUser", ["isAuthenticated"]),
+        remainingSalary() {
+            return this.formatCurrency(this.$store.getters["currentUser/remainingSalary"]);
+        },
+        userProfile() {
+            return this.profile;
+        }
     },
-    formatCurrency(amount) {
-      return new Intl.NumberFormat('de-DE', {
-        style: 'currency',
-        currency: 'EUR'
-      }).format(amount);
+    created() {
+        this.checkAuthState();
+    },
+    methods: {
+        ...mapActions("currentUser", ["checkAuthState", "logout"]),
+        closePopUp() {
+            this.showPopUp = false;
+            this.$refs.table.loadContracts();
+        },
+        formatCurrency(amount) {
+            return new Intl.NumberFormat("de-DE", {
+                style: "currency",
+                currency: "EUR"
+            }).format(amount);
+        }
     }
-  }
 };
 </script>
 

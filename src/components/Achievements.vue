@@ -1,77 +1,94 @@
 <template>
-    <div class="achievements-container">
-      <h2>Deine Spar-Achievements</h2>
+  <div class="achievements-container">
+    <h2>Deine Spar-Achievements</h2>
   
-      <div class="cards">
-        <div
-          v-for="achievement in all"
-          :key="achievement.id"
-          class="card"
-          :class="{
-            locked: !achievement.unlocked,
-            [`bg-${achievement.id}`]: achievement.unlocked
-          }"
-          @click="openModal(achievement.id)"
-        >
-          <h3>{{ achievement.title }}</h3>
-          <p>{{ achievement.description }}</p>
-        </div>
+    <div class="cards">
+      <div
+        v-for="achievement in all"
+        :key="achievement.id"
+        class="card"
+        :class="{
+          locked: !achievement.unlocked,
+          [`bg-${achievement.id}`]: achievement.unlocked
+        }"
+        @click="openModal(achievement.id)"
+      >
+        <h3>{{ achievement.title }}</h3>
+        <p>{{ achievement.description }}</p>
       </div>
+    </div>
   
-      <!-- MODAL -->
-      <div v-if="showModal" class="modal-overlay" @click="closeModal">
-        <div class="modal" @click.stop>
-          <h3>{{ currentAchievement?.title }}</h3>
-          <p>Hast du dieses Achievement geschafft?</p>
+    <!-- MODAL -->
+    <div
+      v-if="showModal"
+      class="modal-overlay"
+      @click="closeModal"
+    >
+      <div
+        class="modal"
+        @click.stop
+      >
+        <h3>{{ currentAchievement?.title }}</h3>
+        <p>Hast du dieses Achievement geschafft?</p>
   
-          <div class="modal-buttons">
-            <button class="yes" @click="unlockAchievement">Ja</button>
-            <button class="no" @click="closeModal">Nein</button>
-          </div>
+        <div class="modal-buttons">
+          <button
+            class="yes"
+            @click="unlockAchievement"
+          >
+            Ja
+          </button>
+          <button
+            class="no"
+            @click="closeModal"
+          >
+            Nein
+          </button>
         </div>
       </div>
     </div>
-  </template>
+  </div>
+</template>
   
-  <script>
-  import { mapGetters, mapActions } from "vuex";
+<script>
+import { mapGetters, mapActions } from "vuex";
   
-  export default {
+export default {
     name: "Achievements",
     data() {
-      return {
-        showModal: false,
-        selectedId: null,
-      };
+        return {
+            showModal: false,
+            selectedId: null
+        };
     },
     computed: {
-      ...mapGetters("achievements", ["all", "progressPercent"]),
-      currentAchievement() {
-        if (!this.selectedId) return null;
-        return this.all.find(a => a.id === this.selectedId);
-      },
+        ...mapGetters("achievements", ["all", "progressPercent"]),
+        currentAchievement() {
+            if (!this.selectedId) {return null;}
+            return this.all.find(a => a.id === this.selectedId);
+        }
     },
     created() {
-      this.$store.dispatch("achievements/load");
+        this.$store.dispatch("achievements/load");
     },
     methods: {
-      ...mapActions("achievements", ["unlock"]),
-      openModal(id) {
-        this.selectedId = id;
-        this.showModal = true;
-      },
-      closeModal() {
-        this.showModal = false;
-        this.selectedId = null;
-      },
-      unlockAchievement() {
-        if (this.selectedId != null) {
-          this.unlock(this.selectedId);
+        ...mapActions("achievements", ["unlock"]),
+        openModal(id) {
+            this.selectedId = id;
+            this.showModal = true;
+        },
+        closeModal() {
+            this.showModal = false;
+            this.selectedId = null;
+        },
+        unlockAchievement() {
+            if (this.selectedId != null) {
+                this.unlock(this.selectedId);
+            }
+            this.closeModal();
         }
-        this.closeModal();
-      },
-    },
-  };
+    }
+};
 </script>
   
 <style lang="scss" scoped>

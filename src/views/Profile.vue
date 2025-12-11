@@ -1,16 +1,27 @@
 <template>
   <div class="profile">
-    <div v-if="!isAuthenticated" class="login-prompt">
+    <div
+      v-if="!isAuthenticated"
+      class="login-prompt"
+    >
       <h2>Profil</h2>
       <p>Bitte melden Sie sich an, um Ihr Profil zu bearbeiten.</p>
       <div class="login-prompt__icon">
-        <i class="pi pi-user" style="font-size: 4rem; color: #ccc;"></i>
+        <i
+          class="pi pi-user"
+          style="font-size: 4rem; color: #ccc;"
+        />
       </div>
     </div>
 
-    <div v-else class="profile-content">
+    <div
+      v-else
+      class="profile-content"
+    >
       <div class="profile__header">
-        <div class="headline">Mein Profil</div>
+        <div class="headline">
+          Mein Profil
+        </div>
         <div class="profile-info">
           <span class="email">{{ user.email }}</span>
           <span class="join-date">Mitglied seit: {{ formatJoinDate(user.created_at) }}</span>
@@ -21,11 +32,14 @@
         <!-- Grundinformationen -->
         <div class="profile-card">
           <h3>
-            <i class="pi pi-user"></i>
+            <i class="pi pi-user" />
             Grundinformationen
           </h3>
 
-          <div v-if="!editingBasic" class="card-content">
+          <div
+            v-if="!editingBasic"
+            class="card-content"
+          >
             <div class="info-row">
               <label>Benutzername:</label>
               <span>{{ userProfile?.username || 'Nicht gesetzt' }}</span>
@@ -34,29 +48,60 @@
               <label>Gehalt:</label>
               <span>{{ userProfile?.salary ? formatCurrency(userProfile.salary) : 'Nicht gesetzt' }}</span>
             </div>
-            <button class="edit-btn" @click="startEditingBasic">
-              <i class="pi pi-pencil"></i> Bearbeiten
+            <button
+              class="edit-btn"
+              @click="startEditingBasic"
+            >
+              <i class="pi pi-pencil" /> Bearbeiten
             </button>
           </div>
 
-          <div v-else class="card-content editing">
-            <div v-if="basicError" class="error-message">{{ basicError }}</div>
+          <div
+            v-else
+            class="card-content editing"
+          >
+            <div
+              v-if="basicError"
+              class="error-message"
+            >
+              {{ basicError }}
+            </div>
 
             <div class="form-group">
               <label>Benutzername:</label>
-              <input v-model="editBasic.username" type="text" placeholder="Ihr Benutzername" :disabled="loadingBasic" />
+              <input
+                v-model="editBasic.username"
+                type="text"
+                placeholder="Ihr Benutzername"
+                :disabled="loadingBasic"
+              >
             </div>
             <div class="form-group">
               <label>Gehalt (€):</label>
-              <input v-model="editBasic.salary" type="number" placeholder="50000" :disabled="loadingBasic" step="0.01" min="0" />
+              <input
+                v-model="editBasic.salary"
+                type="number"
+                placeholder="50000"
+                :disabled="loadingBasic"
+                step="0.01"
+                min="0"
+              >
             </div>
 
             <div class="button-group">
-              <button class="save-btn" @click="saveBasicInfo" :disabled="loadingBasic">
-                <i class="pi pi-check"></i> {{ loadingBasic ? 'Speichert...' : 'Speichern' }}
+              <button
+                class="save-btn"
+                :disabled="loadingBasic"
+                @click="saveBasicInfo"
+              >
+                <i class="pi pi-check" /> {{ loadingBasic ? 'Speichert...' : 'Speichern' }}
               </button>
-              <button class="cancel-btn" @click="cancelEditingBasic" :disabled="loadingBasic">
-                <i class="pi pi-times"></i> Abbrechen
+              <button
+                class="cancel-btn"
+                :disabled="loadingBasic"
+                @click="cancelEditingBasic"
+              >
+                <i class="pi pi-times" /> Abbrechen
               </button>
             </div>
           </div>
@@ -65,173 +110,209 @@
         <!-- Passwort ändern -->
         <div class="profile-card">
           <h3>
-            <i class="pi pi-lock"></i>
+            <i class="pi pi-lock" />
             Passwort ändern
           </h3>
 
-          <div v-if="!changingPassword" class="card-content">
+          <div
+            v-if="!changingPassword"
+            class="card-content"
+          >
             <p>Sie können hier ein neues Passwort festlegen.</p>
-            <button class="edit-btn" @click="startChangingPassword">
-              <i class="pi pi-key"></i> Passwort ändern
+            <button
+              class="edit-btn"
+              @click="startChangingPassword"
+            >
+              <i class="pi pi-key" /> Passwort ändern
             </button>
           </div>
 
-          <div v-else class="card-content editing">
-            <div v-if="passwordError" class="error-message">{{ passwordError }}</div>
-            <div v-if="passwordSuccess" class="success-message">{{ passwordSuccess }}</div>
+          <div
+            v-else
+            class="card-content editing"
+          >
+            <div
+              v-if="passwordError"
+              class="error-message"
+            >
+              {{ passwordError }}
+            </div>
+            <div
+              v-if="passwordSuccess"
+              class="success-message"
+            >
+              {{ passwordSuccess }}
+            </div>
 
             <div class="form-group">
               <label>Neues Passwort:</label>
-              <input v-model="passwordData.newPassword" type="password" placeholder="Mindestens 6 Zeichen" :disabled="loadingPassword" />
+              <input
+                v-model="passwordData.newPassword"
+                type="password"
+                placeholder="Mindestens 6 Zeichen"
+                :disabled="loadingPassword"
+              >
             </div>
             <div class="form-group">
               <label>Passwort bestätigen:</label>
-              <input v-model="passwordData.confirmPassword" type="password" placeholder="Passwort wiederholen" :disabled="loadingPassword" />
+              <input
+                v-model="passwordData.confirmPassword"
+                type="password"
+                placeholder="Passwort wiederholen"
+                :disabled="loadingPassword"
+              >
             </div>
 
             <div class="button-group">
-              <button class="save-btn" @click="changePassword" :disabled="loadingPassword">
-                <i class="pi pi-check"></i> {{ loadingPassword ? 'Ändert...' : 'Passwort ändern' }}
+              <button
+                class="save-btn"
+                :disabled="loadingPassword"
+                @click="changePassword"
+              >
+                <i class="pi pi-check" /> {{ loadingPassword ? 'Ändert...' : 'Passwort ändern' }}
               </button>
-              <button class="cancel-btn" @click="cancelChangingPassword" :disabled="loadingPassword">
-                <i class="pi pi-times"></i> Abbrechen
+              <button
+                class="cancel-btn"
+                :disabled="loadingPassword"
+                @click="cancelChangingPassword"
+              >
+                <i class="pi pi-times" /> Abbrechen
               </button>
             </div>
           </div>
         </div>
-
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { mapState, mapGetters, mapActions } from 'vuex';
+import { mapState, mapGetters, mapActions } from "vuex";
 
 export default {
-  name: 'Profile',
+    name: "Profile",
 
-  data() {
-    return {
-      editingBasic: false,
-      loadingBasic: false,
-      basicError: null,
-      editBasic: { username: '', salary: null },
+    data() {
+        return {
+            editingBasic: false,
+            loadingBasic: false,
+            basicError: null,
+            editBasic: { username: "", salary: null },
 
-      changingPassword: false,
-      loadingPassword: false,
-      passwordError: null,
-      passwordSuccess: null,
-      passwordData: { newPassword: '', confirmPassword: '' }
-    };
-  },
+            changingPassword: false,
+            loadingPassword: false,
+            passwordError: null,
+            passwordSuccess: null,
+            passwordData: { newPassword: "", confirmPassword: "" }
+        };
+    },
 
-  computed: {
-    ...mapState('currentUser', ['user', 'profile']),
-    ...mapGetters('currentUser', ['isAuthenticated']),
-    userProfile() {
-      return this.profile;
-    }
-  },
+    computed: {
+        ...mapState("currentUser", ["user", "profile"]),
+        ...mapGetters("currentUser", ["isAuthenticated"]),
+        userProfile() {
+            return this.profile;
+        }
+    },
 
-  created() {
+    created() {
     // Lade Profil automatisch beim Start
-    this.checkAuthState();
-  },
-
-  methods: {
-    ...mapActions('currentUser', ['checkAuthState', 'updateProfile', 'updatePassword']),
-
-    formatJoinDate(dateString) {
-      if (!dateString) return '';
-      const date = new Date(dateString);
-      return date.toLocaleDateString('de-DE', { year: 'numeric', month: 'long', day: 'numeric' });
+        this.checkAuthState();
     },
 
-    formatCurrency(amount) {
-      return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount);
-    },
+    methods: {
+        ...mapActions("currentUser", ["checkAuthState", "updateProfile", "updatePassword"]),
 
-    startEditingBasic() {
-      this.editBasic.username = this.userProfile?.username || '';
-      this.editBasic.salary = this.userProfile?.salary || null;
-      this.editingBasic = true;
-      this.basicError = null;
-    },
-    cancelEditingBasic() {
-      this.editingBasic = false;
-      this.basicError = null;
-      this.editBasic = { username: '', salary: null };
-    },
-    async saveBasicInfo() {
-      this.basicError = null;
+        formatJoinDate(dateString) {
+            if (!dateString) {return "";}
+            const date = new Date(dateString);
+            return date.toLocaleDateString("de-DE", { year: "numeric", month: "long", day: "numeric" });
+        },
 
-      if (!this.editBasic.username.trim()) {
-        this.basicError = 'Benutzername ist erforderlich.';
-        return;
-      }
-      if (this.editBasic.salary && this.editBasic.salary < 0) {
-        this.basicError = 'Das Gehalt muss positiv sein.';
-        return;
-      }
+        formatCurrency(amount) {
+            return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(amount);
+        },
 
-      this.loadingBasic = true;
-      try {
-        await this.updateProfile({
-          username: this.editBasic.username.trim(),
-          salary: this.editBasic.salary ? parseFloat(this.editBasic.salary) : null
-        });
-        this.editingBasic = false;
-      } catch (err) {
-        console.error('Fehler beim Speichern des Profils:', err);
-        this.basicError = 'Fehler beim Speichern. Bitte erneut versuchen.';
-      } finally {
-        this.loadingBasic = false;
-      }
-    },
+        startEditingBasic() {
+            this.editBasic.username = this.userProfile?.username || "";
+            this.editBasic.salary = this.userProfile?.salary || null;
+            this.editingBasic = true;
+            this.basicError = null;
+        },
+        cancelEditingBasic() {
+            this.editingBasic = false;
+            this.basicError = null;
+            this.editBasic = { username: "", salary: null };
+        },
+        async saveBasicInfo() {
+            this.basicError = null;
 
-    startChangingPassword() {
-      this.changingPassword = true;
-      this.passwordError = null;
-      this.passwordSuccess = null;
-      this.passwordData = { newPassword: '', confirmPassword: '' };
-    },
-    cancelChangingPassword() {
-      this.changingPassword = false;
-      this.passwordError = null;
-      this.passwordSuccess = null;
-      this.passwordData = { newPassword: '', confirmPassword: '' };
-    },
-    async changePassword() {
-      this.passwordError = null;
-      this.passwordSuccess = null;
+            if (!this.editBasic.username.trim()) {
+                this.basicError = "Benutzername ist erforderlich.";
+                return;
+            }
+            if (this.editBasic.salary && this.editBasic.salary < 0) {
+                this.basicError = "Das Gehalt muss positiv sein.";
+                return;
+            }
 
-      if (!this.passwordData.newPassword) {
-        this.passwordError = 'Neues Passwort ist erforderlich.';
-        return;
-      }
-      if (this.passwordData.newPassword.length < 6) {
-        this.passwordError = 'Das Passwort muss mindestens 6 Zeichen lang sein.';
-        return;
-      }
-      if (this.passwordData.newPassword !== this.passwordData.confirmPassword) {
-        this.passwordError = 'Die Passwörter stimmen nicht überein.';
-        return;
-      }
+            this.loadingBasic = true;
+            try {
+                await this.updateProfile({
+                    username: this.editBasic.username.trim(),
+                    salary: this.editBasic.salary ? parseFloat(this.editBasic.salary) : null
+                });
+                this.editingBasic = false;
+            } catch (err) {
+                console.error("Fehler beim Speichern des Profils:", err);
+                this.basicError = "Fehler beim Speichern. Bitte erneut versuchen.";
+            } finally {
+                this.loadingBasic = false;
+            }
+        },
 
-      this.loadingPassword = true;
-      try {
-        await this.updatePassword(this.passwordData.newPassword);
-        this.passwordSuccess = 'Passwort erfolgreich geändert!';
-        setTimeout(() => this.cancelChangingPassword(), 2000);
-      } catch (err) {
-        console.error('Fehler beim Ändern des Passworts:', err);
-        this.passwordError = 'Fehler beim Ändern des Passworts. Bitte erneut versuchen.';
-      } finally {
-        this.loadingPassword = false;
-      }
+        startChangingPassword() {
+            this.changingPassword = true;
+            this.passwordError = null;
+            this.passwordSuccess = null;
+            this.passwordData = { newPassword: "", confirmPassword: "" };
+        },
+        cancelChangingPassword() {
+            this.changingPassword = false;
+            this.passwordError = null;
+            this.passwordSuccess = null;
+            this.passwordData = { newPassword: "", confirmPassword: "" };
+        },
+        async changePassword() {
+            this.passwordError = null;
+            this.passwordSuccess = null;
+
+            if (!this.passwordData.newPassword) {
+                this.passwordError = "Neues Passwort ist erforderlich.";
+                return;
+            }
+            if (this.passwordData.newPassword.length < 6) {
+                this.passwordError = "Das Passwort muss mindestens 6 Zeichen lang sein.";
+                return;
+            }
+            if (this.passwordData.newPassword !== this.passwordData.confirmPassword) {
+                this.passwordError = "Die Passwörter stimmen nicht überein.";
+                return;
+            }
+
+            this.loadingPassword = true;
+            try {
+                await this.updatePassword(this.passwordData.newPassword);
+                this.passwordSuccess = "Passwort erfolgreich geändert!";
+                setTimeout(() => this.cancelChangingPassword(), 2000);
+            } catch (err) {
+                console.error("Fehler beim Ändern des Passworts:", err);
+                this.passwordError = "Fehler beim Ändern des Passworts. Bitte erneut versuchen.";
+            } finally {
+                this.loadingPassword = false;
+            }
+        }
     }
-  }
 };
 </script>
 

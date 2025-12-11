@@ -1,20 +1,53 @@
 <template>
   <div class="header">
-    <img class="header__logo" :src="logoPng" alt="logo" />
+    <img
+      class="header__logo"
+      :src="logoPng"
+      alt="logo"
+    >
     <div class="header__container">
       <div class="header__navigation">
-        <RouterLink to="/" class="header__navigation__item">Finanzen</RouterLink>
-        <RouterLink to="/Statistiken" class="header__navigation__item">Statistiken</RouterLink>
-        <RouterLink to="/BenutzerProfil" class="header__navigation__item">Profil</RouterLink>
+        <RouterLink
+          to="/"
+          class="header__navigation__item"
+        >
+          Finanzen
+        </RouterLink>
+        <RouterLink
+          to="/Statistiken"
+          class="header__navigation__item"
+        >
+          Statistiken
+        </RouterLink>
+        <RouterLink
+          to="/BenutzerProfil"
+          class="header__navigation__item"
+        >
+          Profil
+        </RouterLink>
       </div>
 
       <div class="header__user-section">
-        <div v-if="isAuthenticated" class="header__user-info">
+        <div
+          v-if="isAuthenticated"
+          class="header__user-info"
+        >
           <span class="header__username">{{ userProfile?.username || user?.email }}</span>
-          <button class="header__logout-btn" @click="logout">Abmelden</button>
+          <button
+            class="header__logout-btn"
+            @click="logout"
+          >
+            Abmelden
+          </button>
         </div>
-        <div v-else class="header__user-button">
-          <i class="header__user-button__icon pi pi-user" @click="showLoginModal = true"></i>
+        <div
+          v-else
+          class="header__user-button"
+        >
+          <i
+            class="header__user-button__icon pi pi-user"
+            @click="showLoginModal = true"
+          />
         </div>
       </div>
     </div>
@@ -24,88 +57,88 @@
       @close-popup="showLoginModal = false"
       @login-success="handleLoginSuccess"
       @register="register"
-    ></pop-up-login>
+    />
 
     <pop-up-register 
       v-if="showRegisterModal" 
       @close-popup="showRegisterModal = false"
-    ></pop-up-register>
+    />
   </div>
 </template>
 
 <script>
 import logo from "../assets/logo.png";
-import 'primeicons/primeicons.css';
+import "primeicons/primeicons.css";
 import PopUpLogin from "../PopUps/PopUp-Login.vue";
 import PopUpRegister from "../PopUps/PopUp-Register.vue";
 import { RouterLink } from "vue-router";
 import { mapActions } from "vuex";
 
 export default {
-  name: "HeaderNav",
-  components: { PopUpLogin, PopUpRegister, RouterLink },
+    name: "HeaderNav",
+    components: { PopUpLogin, PopUpRegister, RouterLink },
 
-  data() {
-    return {
-      logoPng: logo,
-      showLoginModal: false,
-      showRegisterModal: false,
-    }
-  },
+    data() {
+        return {
+            logoPng: logo,
+            showLoginModal: false,
+            showRegisterModal: false
+        };
+    },
 
-  computed: {
-    user() {
-      return this.$store.state.currentUser.user;
+    computed: {
+        user() {
+            return this.$store.state.currentUser.user;
+        },
+        userProfile() {
+            return this.$store.state.currentUser.profile;
+        },
+        isAuthenticated() {
+            return this.$store.getters["currentUser/isAuthenticated"];
+        },
+        isLoading() {
+            return this.$store.getters["currentUser/isLoading"];
+        }
     },
-    userProfile() {
-      return this.$store.state.currentUser.profile;
-    },
-    isAuthenticated() {
-      return this.$store.getters['currentUser/isAuthenticated'];
-    },
-    isLoading() {
-      return this.$store.getters['currentUser/isLoading'];
-    }
-  },
 
-  created() {
+    created() {
     // Prüfe Auth-Status beim Laden
-    this.$store.dispatch('currentUser/checkAuthState');
-  },
-
-  methods: {
-    ...mapActions('currentUser', ['logout']),
-    register() {
-      this.showLoginModal = false;
-      this.showRegisterModal = true;
+        this.$store.dispatch("currentUser/checkAuthState");
     },
 
-    handleLoginSuccess(user) {
-      this.showLoginModal = false;
-      // Dispatch login Erfolg an den Store
-      this.$store.dispatch('currentUser/handleLoginSuccess', user)
-      .then(() => {
-        // Seite neu laden
-        window.location.reload();
-      })
-      .catch(err => {
-        console.error("Logout fehlgeschlagen:", err);
-      });
+    methods: {
+        ...mapActions("currentUser", ["logout"]),
+        register() {
+            this.showLoginModal = false;
+            this.showRegisterModal = true;
+        },
+
+        handleLoginSuccess(user) {
+            this.showLoginModal = false;
+            // Dispatch login Erfolg an den Store
+            this.$store.dispatch("currentUser/handleLoginSuccess", user)
+                .then(() => {
+                    // Seite neu laden
+                    window.location.reload();
+                })
+                .catch(err => {
+                    console.error("Logout fehlgeschlagen:", err);
+                });
       
-    },
+        },
 
-    logout() {
-      this.$store.dispatch('currentUser/logout')
-      .then(() => {
-        // Seite neu laden
-        window.location.reload();
-      })
-      .catch(err => {
-        console.error("Logout fehlgeschlagen:", err);
-      });
+        logout() {
+            this.$store.dispatch("currentUser/logout")
+                .then(() => {
+                    // Seite neu laden
+                    window.location.reload();
+                })
+                .catch(err => {
+                    console.error("Logout fehlgeschlagen:", err);
+                });
+        }
     }
-  }
-}
+};
 </script>
 
 <style lang="scss">

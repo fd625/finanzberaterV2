@@ -5,10 +5,16 @@
   "main": "src/electron/main.js",
   "scripts": {
     "lint": "eslint . --ext .js,.vue",
+    "lint:fix": "eslint . --ext .js,.vue --fix",
     "dev": "vite",
     "electron": "electron .",
     "build": "vite build",
-    "dist": "electron-builder"
+    "dist": "electron-builder",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "ci": "npm run lint && npm run test:run && npm run build"
   },
   "dependencies": {
     "@primeuix/themes": "^1.2.3",
@@ -26,13 +32,19 @@
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@vitejs/plugin-vue": "^6.0.1",
+    "@vitest/coverage-v8": "^4.0.15",
+    "@vitest/ui": "^4.0.15",
     "@vue/eslint-config-standard": "^9.0.1",
+    "@vue/test-utils": "^2.4.6",
     "electron": "^38.1.0",
     "electron-builder": "^26.0.12",
     "eslint": "^9.39.1",
     "eslint-plugin-vue": "^10.6.2",
     "globals": "^16.5.0",
+    "happy-dom": "^20.0.11",
+    "jsdom": "^27.3.0",
     "sass-embedded": "^1.92.1",
-    "vite": "^7.1.2"
+    "vite": "^7.1.2",
+    "vitest": "^4.0.15"
   }
 }

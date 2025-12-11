@@ -1,120 +1,133 @@
 <template>
-    <div class="home-table">
-        <DataTable 
-            :value="contracts" 
-            scrollable 
-            scrollHeight="1000px" 
-            paginator 
-            :loading="loading"
-            v-model:filters="filters"
-            :rows="5" 
-            :rowsPerPageOptions="[5, 10, 20, 50]"
-            filterDisplay="menu"
-            :globalFilterFields="['company', 'description', 'date', 'amount','scheduled_payment', ]">
-            
-            <template #header>
-                <div class="flex justify-between home-table__header">
-                    <Button 
-                        type="button" 
-                        icon="pi pi-filter-slash" 
-                        label="Clear" 
-                        variant="outlined" 
-                        @click="clearFilter()" 
-                    />
-                        <InputText 
-                            v-model="filters['global'].value" 
-                            placeholder="Suche..." 
-                            style="width: 30% !important; margin: 0 !important;"
-                        />
-                </div>
-            </template>
-            <template #empty> Keine Verträge gefunden. </template>
-            <template #loading> Verträge werden geladen. Bitte warten. </template>
+  <div class="home-table">
+    <DataTable 
+      v-model:filters="filters" 
+      :value="contracts" 
+      scrollable 
+      scroll-height="1000px" 
+      paginator
+      :loading="loading"
+      :rows="5" 
+      :rows-per-page-options="[5, 10, 20, 50]"
+      filter-display="menu"
+      :global-filter-fields="['company', 'description', 'date', 'amount','scheduled_payment', ]"
+    >
+      <template #header>
+        <div class="flex justify-between home-table__header">
+          <Button 
+            type="button" 
+            icon="pi pi-filter-slash" 
+            label="Clear" 
+            variant="outlined" 
+            @click="clearFilter()" 
+          />
+          <InputText 
+            v-model="filters['global'].value" 
+            placeholder="Suche..." 
+            style="width: 30% !important; margin: 0 !important;"
+          />
+        </div>
+      </template>
+      <template #empty>
+        Keine Verträge gefunden.
+      </template>
+      <template #loading>
+        Verträge werden geladen. Bitte warten.
+      </template>
                 
-            <Column 
-                field="company" 
-                header="Unternehmen"
-                style="min-width: 150px" 
-                sortable>
-            </Column>
+      <Column 
+        field="company" 
+        header="Unternehmen"
+        style="min-width: 150px" 
+        sortable
+      />
             
-            <Column 
-                field="description" 
-                header="Beschreibung" 
-                style="min-width: 200px" 
-                sortable>
-                <template #body="slotProps">
-                    {{ slotProps.data.description || '-' }}
-                </template>
-            </Column>
+      <Column 
+        field="description" 
+        header="Beschreibung" 
+        style="min-width: 200px" 
+        sortable
+      >
+        <template #body="slotProps">
+          {{ slotProps.data.description || '-' }}
+        </template>
+      </Column>
             
-            <Column 
-                field="date" 
-                header="Startdatum" 
-                style="min-width: 120px" 
-                sortable>
-                <template #body="slotProps">
-                    {{ formatDateToGerman(slotProps.data.start_date)
-                    + ( slotProps.data.end_date ? " - " + formatDateToGerman(slotProps.data.end_date): " ") }}
-                </template>
-            </Column>
+      <Column 
+        field="date" 
+        header="Startdatum" 
+        style="min-width: 120px" 
+        sortable
+      >
+        <template #body="slotProps">
+          {{ formatDateToGerman(slotProps.data.start_date)
+            + ( slotProps.data.end_date ? " - " + formatDateToGerman(slotProps.data.end_date): " ") }}
+        </template>
+      </Column>
             
-            <Column 
-                field="amount" 
-                header="Betrag" 
-                style="min-width: 120px" 
-                sortable>
-                <template #body="slotProps">
-                    {{ formatCurrency(slotProps.data.amount) }}
-                </template>
-            </Column>
+      <Column 
+        field="amount" 
+        header="Betrag" 
+        style="min-width: 120px" 
+        sortable
+      >
+        <template #body="slotProps">
+          {{ formatCurrency(slotProps.data.amount) }}
+        </template>
+      </Column>
             
-            <Column 
-                field="scheduled_payment" 
-                header="Abbuchung" 
-                style="min-width: 100px" 
-                sortable>
-                <template #body="slotProps">
-                    {{ slotProps.data.scheduled_payment }}. des Monats
-                </template>
-            </Column>
+      <Column 
+        field="scheduled_payment" 
+        header="Abbuchung" 
+        style="min-width: 100px" 
+        sortable
+      >
+        <template #body="slotProps">
+          {{ slotProps.data.scheduled_payment }}. des Monats
+        </template>
+      </Column>
             
-            <Column header="Aktionen" style="min-width: 120px">
-                <template #body="slotProps">
-                    <button 
-                        class="action-btn edit-btn" 
-                        @click="updateContract(slotProps.data.id)"
-                        title="Bearbeiten">
-                        <i class="pi pi-pencil"></i>
-                    </button>
-                    <button 
-                        class="action-btn delete-btn" 
-                        @click="deleteContract(slotProps.data.id)"
-                        title="Löschen">
-                        <i class="pi pi-trash"></i>
-                    </button>
-                </template>
-            </Column>
-        </DataTable>
+      <Column
+        header="Aktionen"
+        style="min-width: 120px"
+      >
+        <template #body="slotProps">
+          <button 
+            class="action-btn edit-btn" 
+            title="Bearbeiten"
+            @click="updateContract(slotProps.data.id)"
+          >
+            <i class="pi pi-pencil" />
+          </button>
+          <button 
+            class="action-btn delete-btn" 
+            title="Löschen"
+            @click="deleteContract(slotProps.data.id)"
+          >
+            <i class="pi pi-trash" />
+          </button>
+        </template>
+      </Column>
+    </DataTable>
         
-        <PopupFormContract 
-            v-if="showUpdateContract" 
-            :updateItemId="updateId" 
-            @close-popup="showUpdateContract = false"
-        />
-    </div>
+    <PopupFormContract 
+      v-if="showUpdateContract" 
+      :update-item-id="updateId" 
+      @close-popup="showUpdateContract = false"
+    />
+  </div>
 </template>
 <script>
 import contractManager from "../services/contractManager";
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
-import InputText from 'primevue/inputtext';
-import Button from 'primevue/button';
-import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
+import DataTable from "primevue/datatable";
+import Column from "primevue/column";
+import InputText from "primevue/inputtext";
+import Button from "primevue/button";
+import { FilterMatchMode, FilterOperator } from "@primevue/core/api";
 import PopupFormContract from "../PopUps/Popup-FormContract.vue";
 
 export default {
-    name: "contracts-table",
+    name: "ContractsTable",
     components: { DataTable, Column, InputText, Button, PopupFormContract },
     data() {
         return {
@@ -150,7 +163,7 @@ export default {
             this.updateId = id;
         }, 
         async deleteContract(id) {
-            if (!confirm("Vertrag wirklich löschen?")) return;
+            if (!confirm("Vertrag wirklich löschen?")) {return;}
             try {
                 await contractManager.deleteContract(id);
                 await this.loadContracts(); 

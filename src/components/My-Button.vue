@@ -1,21 +1,21 @@
 <template>
-    <button 
-        class="my-button" 
-        :style="{'background-color' : color}" 
-        @click="$emit('clicked')"
-        >
-        {{ label }}
-    </button>
+  <button 
+    class="my-button" 
+    :style="{'background-color' : color}" 
+    @click="$emit('clicked')"
+  >
+    {{ label }}
+  </button>
 </template>
 
 <script>
 export default {
-    name: "My-Button",
+    name: "MyButton",
     props: {
         label: String,
         color: String
     }
-}
+};
 </script>
 
 <style lang="scss">

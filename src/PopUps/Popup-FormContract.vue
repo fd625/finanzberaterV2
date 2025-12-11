@@ -1,119 +1,137 @@
 <template>
-    <div class="popup-add-contract">
-       <Popup 
-           @close-popup="$emit('close-popup')"
-           @submit="submitContract"
-           label="Vertrag"
-           submitHeadline="Speichern">
-           
-           <template v-slot:form>
-               <div class="contract-form">
-                   <div v-if="error" class="error-message">
-                       {{ error }}
-                   </div>
+  <div class="popup-add-contract">
+    <Popup 
+      label="Vertrag"
+      submit-headline="Speichern"
+      @close-popup="$emit('close-popup')"
+      @submit="submitContract"
+    >
+      <template #form>
+        <div class="contract-form">
+          <div
+            v-if="error"
+            class="error-message"
+          >
+            {{ error }}
+          </div>
                    
-                   <div v-if="loading" class="loading-message">
-                       Vertrag wird gespeichert...
-                   </div>
+          <div
+            v-if="loading"
+            class="loading-message"
+          >
+            Vertrag wird gespeichert...
+          </div>
                    
-                   <div class="form-group">
-                       <label>Unternehmen *</label>
-                       <InputText 
-                           v-model="contract.company"
-                           type="text"
-                           placeholder="z.B. Spotify, Netflix..."
-                           :disabled="loading"
-                           required
-                       />
-                   </div>
+          <div class="form-group">
+            <label>Unternehmen *</label>
+            <InputText 
+              v-model="contract.company"
+              type="text"
+              placeholder="z.B. Spotify, Netflix..."
+              :disabled="loading"
+              required
+            />
+          </div>
                    
-                   <div class="form-group">
-                       <label>Beschreibung</label>
-                       <Textarea 
-                           v-model="contract.description"
-                           placeholder="Optionale Beschreibung des Vertrags..."
-                           :disabled="loading"
-                           rows="3"
-                       />
-                   </div>
+          <div class="form-group">
+            <label>Beschreibung</label>
+            <Textarea 
+              v-model="contract.description"
+              placeholder="Optionale Beschreibung des Vertrags..."
+              :disabled="loading"
+              rows="3"
+            />
+          </div>
                    
-                   <div class="form-group">
-                       <label>Monatlicher Betrag (€) *</label>
-                       <InputNumber
-                           v-model="contract.amount"
-                           mode="currency"
-                           currency="EUR"
-                           locale="de-DE"
-                           :disabled="loading"
-                           :min="0"
-                           :maxFractionDigits="2"
-                           placeholder="0,00"
-                       />
-                   </div>
+          <div class="form-group">
+            <label>Monatlicher Betrag (€) *</label>
+            <InputNumber
+              v-model="contract.amount"
+              mode="currency"
+              currency="EUR"
+              locale="de-DE"
+              :disabled="loading"
+              :min="0"
+              :max-fraction-digits="2"
+              placeholder="0,00"
+            />
+          </div>
                    
-                   <div class="form-row">
-                       <div class="form-group">
-                           <label>Startdatum *</label>
-                           <DatePicker
-                               v-model="contract.start_date"
-                               :disabled="loading"
-                               placeholder="Datum auswählen"
-                               :showIcon="true"
-                           />
-                       </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Startdatum *</label>
+              <DatePicker
+                v-model="contract.start_date"
+                :disabled="loading"
+                placeholder="Datum auswählen"
+                :show-icon="true"
+              />
+            </div>
                        
-                       <div class="form-group">
-                           <label>Enddatum</label>
-                           <DatePicker
-                               v-model="contract.end_date"
-                               :disabled="loading"
-                               placeholder="Optional"
-                               :showIcon="true"
-                           />
-                       </div>
-                   </div>
+            <div class="form-group">
+              <label>Enddatum</label>
+              <DatePicker
+                v-model="contract.end_date"
+                :disabled="loading"
+                placeholder="Optional"
+                :show-icon="true"
+              />
+            </div>
+          </div>
                    
-                   <div class="form-group">
-                       <label>Abbuchungstag *</label>
-                       <Dropdown
-                           v-model="contract.scheduledPayment"
-                           :options="paymentDays"
-                           optionLabel="label"
-                           optionValue="value"
-                           placeholder="Tag auswählen"
-                           :disabled="loading"
-                           class="payment-dropdown"
-                           appendTo="body"
-                       />
-                   </div>
+          <div class="form-group">
+            <label>Abbuchungstag *</label>
+            <Dropdown
+              v-model="contract.scheduledPayment"
+              :options="paymentDays"
+              option-label="label"
+              option-value="value"
+              placeholder="Tag auswählen"
+              :disabled="loading"
+              class="payment-dropdown"
+              append-to="body"
+            />
+          </div>
                  
-                   <div class="form-group --m-b-20">
-                       <label>Relevanz</label>
-                       <Slider v-model="contract.importance" class="w-56" />
-                   </div>
+          <div class="form-group --m-b-20">
+            <label>Relevanz</label>
+            <Slider
+              v-model="contract.importance"
+              class="w-56"
+            />
+          </div>
                    
-                   <div class="form-info">
-                       <small>* Pflichtfelder</small>
-                   </div>
-               </div>
-           </template>
-       </Popup>
-    </div>
+          <div class="form-info">
+            <small>* Pflichtfelder</small>
+          </div>
+        </div>
+      </template>
+    </Popup>
+  </div>
 </template>
 
 <script>
-import Popup from './PopUp.vue';
-import InputText from 'primevue/inputtext';
-import InputNumber from 'primevue/inputnumber';
-import Textarea from 'primevue/textarea';
-import DatePicker from 'primevue/datepicker';
-import Dropdown from 'primevue/dropdown';
-import { supabase } from '../database.js';
-import contractManager from '../services/contractManager.js';
-import Slider from 'primevue/slider';
+import Popup from "./PopUp.vue";
+import InputText from "primevue/inputtext";
+import InputNumber from "primevue/inputnumber";
+import Textarea from "primevue/textarea";
+import DatePicker from "primevue/datepicker";
+import Dropdown from "primevue/dropdown";
+import { supabase } from "../database.js";
+import contractManager from "../services/contractManager.js";
+import Slider from "primevue/slider";
 
 export default {
-    name: 'Popup-FormContract',
+    name: "PopupFormContract",
+    components: {
+        Popup,
+        InputText,
+        InputNumber,
+        Textarea,
+        DatePicker,
+        Dropdown,
+        Slider
+    },
     props: {
         updateItemId: {
             type: String,
@@ -123,8 +141,8 @@ export default {
     data() {
         return {
             contract: {
-                company: '',
-                description: '',
+                company: "",
+                description: "",
                 amount: null,
                 start_date: null,
                 end_date: null,
@@ -133,8 +151,8 @@ export default {
             },
             loading: false,
             error: null,
-            paymentDays: [],
-        }
+            paymentDays: []
+        };
     },
     created() {
         this.paymentDays = Array.from({ length: 31 }, (_, i) => ({
@@ -170,23 +188,23 @@ export default {
             }
         },
         async submitContract() {
-            console.log('Adding/Updating contract:', this.contract);
+            console.log("Adding/Updating contract:", this.contract);
 
             this.error = null;
 
             // --- VALIDIERUNG ---
             if (!this.contract.company || !this.contract.amount || !this.contract.start_date) {
-                this.error = 'Bitte füllen Sie alle Pflichtfelder aus.';
+                this.error = "Bitte füllen Sie alle Pflichtfelder aus.";
                 return;
             }
 
             if (this.contract.amount <= 0) {
-                this.error = 'Der Betrag muss größer als 0 sein.';
+                this.error = "Der Betrag muss größer als 0 sein.";
                 return;
             }
 
             if (this.contract.end_date && this.contract.end_date <= this.contract.start_date) {
-                this.error = 'Das Enddatum muss nach dem Startdatum liegen.';
+                this.error = "Das Enddatum muss nach dem Startdatum liegen.";
                 return;
             }
 
@@ -196,7 +214,7 @@ export default {
                 // Benutzer prüfen
                 const { data: { user }, error: userError } = await supabase.auth.getUser();
                 if (userError || !user) {
-                    throw new Error('Sie müssen angemeldet sein, um einen Vertrag zu speichern.');
+                    throw new Error("Sie müssen angemeldet sein, um einen Vertrag zu speichern.");
                 }
 
                 // Daten für DB formatieren
@@ -236,7 +254,7 @@ export default {
                 this.showSuccessMessage();
 
             } catch (error) {
-                console.error('Error saving contract:', error);
+                console.error("Error saving contract:", error);
                 this.error = this.getErrorMessage(error);
 
             } finally {
@@ -245,13 +263,13 @@ export default {
         },
         
         showSuccessMessage() {
-            console.log('Contract added successfully!');
+            console.log("Contract added successfully!");
         },
         
         resetForm() {
             this.contract = {
-                company: '',
-                description: '',
+                company: "",
+                description: "",
                 amount: null,
                 start_date: null,
                 end_date: null,
@@ -260,17 +278,8 @@ export default {
             };
             this.error = null;
         }
-    },
-    components: {
-        Popup,
-        InputText,
-        InputNumber,
-        Textarea,
-        DatePicker,
-        Dropdown,
-        Slider
     }
-}
+};
 </script>
 
 <style lang="scss">
