@@ -4,14 +4,14 @@
   
       <div class="cards">
         <div
-          v-for="(achievement, index) in achievements"
-          :key="index"
+          v-for="achievement in all"
+          :key="achievement.id"
           class="card"
           :class="{
             locked: !achievement.unlocked,
-            [`bg-${index + 1}`]: achievement.unlocked
+            [`bg-${achievement.id}`]: achievement.unlocked
           }"
-          @click="openModal(index)"
+          @click="openModal(achievement.id)"
         >
           <h3>{{ achievement.title }}</h3>
           <p>{{ achievement.description }}</p>
@@ -33,55 +33,47 @@
     </div>
   </template>
   
-
   <script>
+  import { mapGetters, mapActions } from "vuex";
+  
   export default {
     name: "Achievements",
     data() {
       return {
-        achievements: [
-          { title: "Erste 100€ gespart", description: "Du hast die ersten 100€ erfolgreich auf die Seite gelegt. Super Start!", unlocked: false },
-          { title: "Monatssparziel erreicht", description: "Du hast dein Sparziel für diesen Monat erreicht. Weiter so!", unlocked: false },
-          { title: "Notfallfonds aufgebaut", description: "Dein Notfallfonds ist nun eingerichtet. Sicherheit für unerwartete Ausgaben!", unlocked: false },
-          { title: "Investition gestartet", description: "Du hast deine erste kleine Investition getätigt. Glückwunsch!", unlocked: false },
-          { title: "1 Woche ohne unnötige Ausgaben", description: "Eine Woche lang keine Spontankäufe – stark!", unlocked: false },
-          { title: "Cashback genutzt", description: "Du hast Cashback sinnvoll genutzt!", unlocked: false },
-          { title: "Erstes Budget erstellt", description: "Du hast ein Budget angelegt. Sehr gut!", unlocked: false },
-          { title: "Abo-Falle entkommen", description: "Du hast ein unnötiges Abo gekündigt!", unlocked: false },
-          { title: "Spar-Challenge abgeschlossen", description: "Challenge gemeistert – Respekt!", unlocked: false },
-          { title: "Spontankauf widerstanden", description: "Du hast einem Impulskauf widerstanden!", unlocked: false },
-          { title: "Zweites Einkommen gefunden", description: "Du hast eine neue Einnahmequelle gefunden!", unlocked: false },
-          { title: "Monatsvergleich erstellt", description: "Du hast deine Monatsausgaben verglichen!", unlocked: false },
-          { title: "Sparrate erhöht", description: "Du sparst jetzt mehr pro Monat!", unlocked: false },
-          { title: "Wunschziel erreicht", description: "Du hast für ein Ziel gespart und es erreicht!", unlocked: false }
-        ],
         showModal: false,
-        selectedIndex: null
+        selectedId: null,
       };
     },
     computed: {
+      ...mapGetters("achievements", ["all", "progressPercent"]),
       currentAchievement() {
-        return this.achievements[this.selectedIndex] || null;
-      }
+        if (!this.selectedId) return null;
+        return this.all.find(a => a.id === this.selectedId);
+      },
+    },
+    created() {
+      this.$store.dispatch("achievements/load");
     },
     methods: {
-      openModal(index) {
-        this.selectedIndex = index;
+      ...mapActions("achievements", ["unlock"]),
+      openModal(id) {
+        this.selectedId = id;
         this.showModal = true;
       },
       closeModal() {
         this.showModal = false;
-        this.selectedIndex = null;
+        this.selectedId = null;
       },
       unlockAchievement() {
-        this.achievements[this.selectedIndex].unlocked = true;
+        if (this.selectedId != null) {
+          this.unlock(this.selectedId);
+        }
         this.closeModal();
-      }
-    }
+      },
+    },
   };
-  </script>
+</script>
   
-
 <style lang="scss" scoped>
 .achievements-container {
   width: 100%;
