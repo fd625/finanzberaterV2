@@ -68,6 +68,7 @@ export default {
         PopUp,
         InputText
     },
+    emits: ["close-popup", "register", "login-success"],
     data() {
         return {
             email: "",
@@ -99,13 +100,12 @@ export default {
                     password: this.password
                 });
                 
-                console.log("Supabase login response:", { data, error });
-                
                 if (error) {
                     console.error("Supabase login error:", error);
                     throw error;
                 }
                 
+                if (data.user) {
                     this.$emit("close-popup");
                     this.$emit("login-success", data.user);
                 }

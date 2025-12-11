@@ -14,7 +14,7 @@
     >
       <template #header>
         <div class="flex justify-between home-table__header">
-          <Button 
+          <PButton 
             type="button" 
             icon="pi pi-filter-slash" 
             label="Clear" 
@@ -122,13 +122,20 @@ import contractManager from "../services/contractManager";
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
 import InputText from "primevue/inputtext";
-import Button from "primevue/button";
+import PButton from "primevue/button"; // Rename import
 import { FilterMatchMode, FilterOperator } from "@primevue/core/api";
 import PopupFormContract from "../PopUps/Popup-FormContract.vue";
 
 export default {
     name: "ContractsTable",
-    components: { DataTable, Column, InputText, Button, PopupFormContract },
+    components: { 
+        DataTable, 
+        Column, 
+        InputText, 
+        PButton,
+        PopupFormContract 
+    },
+    emits: ["sum"],
     data() {
         return {
             contracts: [],
@@ -155,7 +162,6 @@ export default {
             }
         },
         getSalary() {
-            //TODO: statisics 
             this.$emit("sum", this.contracts.reduce((sum, c) => sum + (c.amount || 0), 0));
         },
         async updateContract(id) {
@@ -163,7 +169,9 @@ export default {
             this.updateId = id;
         }, 
         async deleteContract(id) {
-            if (!confirm("Vertrag wirklich löschen?")) {return;}
+            if (!confirm("Vertrag wirklich löschen?")) {
+                return;
+            }
             try {
                 await contractManager.deleteContract(id);
                 await this.loadContracts(); 

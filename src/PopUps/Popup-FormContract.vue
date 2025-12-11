@@ -35,7 +35,7 @@
                    
           <div class="form-group">
             <label>Beschreibung</label>
-            <Textarea 
+            <PTextarea 
               v-model="contract.description"
               placeholder="Optionale Beschreibung des Vertrags..."
               :disabled="loading"
@@ -114,7 +114,7 @@
 import Popup from "./PopUp.vue";
 import InputText from "primevue/inputtext";
 import InputNumber from "primevue/inputnumber";
-import Textarea from "primevue/textarea";
+import PTextarea from "primevue/textarea"; // Rename import
 import DatePicker from "primevue/datepicker";
 import Dropdown from "primevue/dropdown";
 import { supabase } from "../database.js";
@@ -127,17 +127,18 @@ export default {
         Popup,
         InputText,
         InputNumber,
-        Textarea,
+        PTextarea,
         DatePicker,
         Dropdown,
         Slider
-    },
+    }, // Add emits
     props: {
         updateItemId: {
             type: String,
             default: null
         }
     },
+    emits: ["close-popup", "contract-added", "contract-updated"],
     data() {
         return {
             contract: {
@@ -159,7 +160,7 @@ export default {
             label: `${i + 1}. des Monats`,
             value: i + 1
         }));
-        if (this.updateItemId != null) {
+        if (this.updateItemId !== null) { // Changed != to !==
             this.loadContract();
         }
     },
@@ -176,10 +177,7 @@ export default {
             this.loading = true;
             try {
                 this.contract = await contractManager.getContractById(this.updateItemId);
-            
                 this.contract.start_date = new Date(this.contract.start_date);
-                console.log("2",this.contract);
-
             } catch (error) {
                 console.error("Error loading contract:", error);
                 this.error = "Vertrag konnte nicht geladen werden.";
@@ -188,11 +186,8 @@ export default {
             }
         },
         async submitContract() {
-            console.log("Adding/Updating contract:", this.contract);
-
             this.error = null;
 
-            // --- VALIDIERUNG ---
             if (!this.contract.company || !this.contract.amount || !this.contract.start_date) {
                 this.error = "Bitte füllen Sie alle Pflichtfelder aus.";
                 return;
@@ -211,13 +206,11 @@ export default {
             this.loading = true;
 
             try {
-                // Benutzer prüfen
                 const { data: { user }, error: userError } = await supabase.auth.getUser();
                 if (userError || !user) {
                     throw new Error("Sie müssen angemeldet sein, um einen Vertrag zu speichern.");
                 }
 
-                // Daten für DB formatieren
                 const contractData = {
                     company: this.contract.company,
                     amount: this.contract.amount,
@@ -230,40 +223,34 @@ export default {
 
                 let savedContract = null;
 
-                // --- UPDATE ODER CREATE ENTSCHEIDEN ---
-                if (this.updateItemId != null) {
-                    console.log("Updating contract ID:", this.updateItemId);
-
+                if (this.updateItemId !== null) { // Changed != to !==
                     savedContract = await contractManager.updateContract(
                         this.updateItemId,
                         contractData
                     );
-
                     this.$emit("contract-updated", savedContract);
-
                 } else {
-                    console.log("Creating new contract:", contractData);
-
                     savedContract = await contractManager.createContract(contractData);
-
                     this.$emit("contract-added", savedContract);
                 }
 
-                // Popup schließen & Erfolg anzeigen
                 this.$emit("close-popup");
                 this.showSuccessMessage();
 
             } catch (error) {
                 console.error("Error saving contract:", error);
                 this.error = this.getErrorMessage(error);
-
             } finally {
                 this.loading = false;
             }
         },
         
         showSuccessMessage() {
-            console.log("Contract added successfully!");
+            // Success handling
+        },
+        
+        getErrorMessage(error) {
+            return error.message || "Ein Fehler ist aufgetreten";
         },
         
         resetForm() {

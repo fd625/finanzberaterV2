@@ -39,13 +39,18 @@
 <script>
 export default {
     props: {
-        label: String,
-        submitHeadline: String
+        label: {
+            type: String,
+            default: "" 
+        },
+        submitHeadline: {
+            type: String,
+            default: "Speichern"
+        }
     },
+    emits: ["close-popup", "submit"],
     data() {
-        return {
-
-        };
+        return {};
     }
 };
 </script>

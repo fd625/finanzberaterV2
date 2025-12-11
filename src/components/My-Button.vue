@@ -10,11 +10,18 @@
 
 <script>
 export default {
-    name: "MyButton",
+    name: "MyButton", 
     props: {
-        label: String,
-        color: String
-    }
+        label: {
+            type: String,
+            default: "" 
+        },
+        color: {
+            type: String,
+            default: "#417d41" 
+        }
+    },
+    emits: ["clicked"]
 };
 </script>
 

@@ -8,7 +8,9 @@ export const userManager = {
             .eq("id", userId)
             .single();
 
-        if (error) {throw error;}
+        if (error) {
+            throw error;
+        }
         return data;
     },
 
@@ -19,13 +21,10 @@ export const userManager = {
             .eq("id", userId)
             .single();
 
-        if (error) {throw error;}
+        if (error) {
+            throw error;
+        }
         return data;
-    },
-
-    async getUserFromApi(id) {
-        const res = await api.get(`/users/${id}`);
-        return res.data;
     },
 
     async registerUser({ email, password, username, salary }) {
@@ -40,9 +39,12 @@ export const userManager = {
             }
         });
 
-        if (error) {throw error;}
+        if (error) {
+            throw error;
+        }
 
         return data;
     }
 };
+
 export default userManager;

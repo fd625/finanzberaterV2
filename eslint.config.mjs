@@ -31,7 +31,9 @@ export default [
             "no-debugger": "error",
       
             // Vue Specific
-            "vue/multi-word-component-names": "warn",
+            "vue/multi-word-component-names": ["error", {
+                "ignores": ["Home", "Profile", "Statistics", "Impressum", "FAQ"]
+            }],
             "vue/no-unused-components": "error",
             "vue/no-unused-vars": "error",
             "vue/require-default-prop": "warn",

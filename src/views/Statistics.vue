@@ -52,7 +52,7 @@ import authMessageBox from "../components/auth-message-box.vue";
 import Achievements from "../components/Achievements.vue";
 
 export default {
-    name: "Statistics",
+    name: "StatisticsView", // Changed to multi-word
     components: {
         Chart,
         tippsMessageBox,
@@ -76,10 +76,7 @@ export default {
             }
         };
     },
-    mounted() {
-        this.loadContracts();
-    },
-    computed: {
+    computed: { // Moved computed before mounted
         ...mapGetters("currentUser", ["remainingSalary","isAuthenticated"]),
         remainingSalary() {
             return this.$store.getters["currentUser/remainingSalary"];
@@ -87,6 +84,9 @@ export default {
     },
     created() {
         this.checkAuthState();
+    },
+    mounted() {
+        this.loadContracts();
     },
     methods: {
         ...mapActions("currentUser", ["checkAuthState"]),
@@ -104,7 +104,7 @@ export default {
                 this.pie.data.push(x.amount);
                 this.bar.data.push(x.importance);
             });
-            console.log("rest",this.remainingSalary);
+            // Removed console.log
             this.pie.labels.push("Restliches Gehalt");
             this.pie.data.push(this.remainingSalary);
         },
@@ -133,7 +133,6 @@ export default {
                             documentStyle.getPropertyValue("--p-red-400"),
                             documentStyle.getPropertyValue("--p-blue-400"),
                             documentStyle.getPropertyValue("--p-green-400")
-
                         ],
                         hoverBackgroundColor: [
                             documentStyle.getPropertyValue("--p-cyan-500"),
@@ -177,7 +176,6 @@ export default {
                             documentStyle.getPropertyValue("--p-red-400"),
                             documentStyle.getPropertyValue("--p-blue-400"),
                             documentStyle.getPropertyValue("--p-green-400")
-
                         ],
                         borderColor: documentStyle.getPropertyValue("--p-cyan-500"),
                         data: this.bar.data

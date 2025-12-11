@@ -54,7 +54,7 @@
 import { mapGetters, mapActions } from "vuex";
   
 export default {
-    name: "Achievements",
+    name: "AchievementsView",
     data() {
         return {
             showModal: false,
@@ -64,7 +64,9 @@ export default {
     computed: {
         ...mapGetters("achievements", ["all", "progressPercent"]),
         currentAchievement() {
-            if (!this.selectedId) {return null;}
+            if (!this.selectedId) {
+                return null;
+            }
             return this.all.find(a => a.id === this.selectedId);
         }
     },
@@ -82,7 +84,7 @@ export default {
             this.selectedId = null;
         },
         unlockAchievement() {
-            if (this.selectedId != null) {
+            if (this.selectedId !== null) {
                 this.unlock(this.selectedId);
             }
             this.closeModal();

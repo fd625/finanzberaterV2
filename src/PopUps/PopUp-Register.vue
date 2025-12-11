@@ -70,6 +70,7 @@ import userManager from "../services/userManager";
 export default {
     name: "PopUpRegister",
     components: { PopUp, InputText },
+    emits: ["close-popup"], // Add emits declaration
     data() {
         return {
             email: "",
