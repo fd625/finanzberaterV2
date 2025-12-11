@@ -4,16 +4,19 @@
       class="header"
     />
     <RouterView></RouterView>
+    <footerSub />
   </div>
 </template>
 
 <script>
 import HeaderNavigation from './components/HeaderNavigation.vue';
+import footerSub from './components/footer-sub.vue';
 
 export default {
   name: 'App',
   components: {
     HeaderNavigation,
+    footerSub
   },
 }
 </script>
