@@ -53,6 +53,10 @@
                 header="Startdatum" 
                 style="min-width: 120px" 
                 sortable>
+                <template #body="slotProps">
+                    {{ formatDateToGerman(slotProps.data.start_date)
+                    + ( slotProps.data.end_date ? " - " + formatDateToGerman(slotProps.data.end_date): " ") }}
+                </template>
             </Column>
             
             <Column 
@@ -78,14 +82,26 @@
             <Column header="Aktionen" style="min-width: 120px">
                 <template #body="slotProps">
                     <button 
+                        class="action-btn edit-btn" 
+                        @click="updateContract(slotProps.data.id)"
+                        title="Bearbeiten">
+                        <i class="pi pi-pencil"></i>
+                    </button>
+                    <button 
                         class="action-btn delete-btn" 
                         @click="deleteContract(slotProps.data.id)"
-                        title="Vertrag löschen">
+                        title="Löschen">
                         <i class="pi pi-trash"></i>
                     </button>
                 </template>
             </Column>
         </DataTable>
+        
+        <PopupFormContract 
+            v-if="showUpdateContract" 
+            :updateItemId="updateId" 
+            @close-popup="showUpdateContract = false"
+        />
     </div>
 </template>
 <script>
@@ -95,15 +111,18 @@ import Column from 'primevue/column';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
+import PopupFormContract from "../PopUps/Popup-FormContract.vue";
 
 export default {
     name: "contracts-table",
-    components: { DataTable, Column, InputText, Button },
+    components: { DataTable, Column, InputText, Button, PopupFormContract },
     data() {
         return {
             contracts: [],
             filters: null,
-            loading: false
+            loading: false,
+            showUpdateContract: false,
+            updateId: null
         };
     },
     async created() {
@@ -115,13 +134,21 @@ export default {
             this.loading = true;
             try {
                 this.contracts = await contractManager.getAllContracts();
+                this.getSalary();
             } catch (err) {
                 console.error("Fehler beim Laden der Verträge:", err);
             } finally {
                 this.loading = false;
             }
         },
-
+        getSalary() {
+            //TODO: statisics 
+            this.$emit("sum", this.contracts.reduce((sum, c) => sum + (c.amount || 0), 0));
+        },
+        async updateContract(id) {
+            this.showUpdateContract = true;
+            this.updateId = id;
+        }, 
         async deleteContract(id) {
             if (!confirm("Vertrag wirklich löschen?")) return;
             try {
@@ -146,13 +173,68 @@ export default {
                 scheduled_payment: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] }
             };
         },
-
         formatCurrency(value) {
             return new Intl.NumberFormat("de-DE", {
                 style: "currency",
                 currency: "EUR"
             }).format(value);
+        },
+        formatDateToGerman(dateString) {
+            const date = new Date(dateString);
+            const day = String(date.getDate()).padStart(2, "0");
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const year = date.getFullYear();
+
+            return `${day}.${month}.${year}`;
         }
     }
 };
 </script>
+
+<style lang="scss">
+
+.action-btn {
+    border: none;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 0 2px;
+    
+    &.edit-btn {
+        background-color: green;
+        color: white;
+        &:hover {
+            background-color: rgb(1, 98, 1);
+        }
+    }
+    &.delete-btn {
+        background-color: #dc3545;
+        color: white;
+        
+        &:hover {
+            background-color: #c82333;
+        }
+    }
+}
+
+.p-datatable-column-header-content,.p-datatable-tbody > tr > td {
+ padding: 20px 0 !important;
+}
+.p-datatable-column-title {
+    padding-right: 15px;
+}
+.p-paginator {
+    padding: 15px 0 !important;
+}
+.p-datatable-paginator-bottom {
+    margin-top: 26px;
+    border: 1px solid grey !important;
+    border-radius: 7px;
+}
+.p-paginator-page, .p-paginator-next, .p-paginator-last, .p-paginator-first, .p-paginator-prev {
+    padding: 10px !important;
+}
+.p-select-dropdown {
+    padding-left: 13px;
+}
+</style>

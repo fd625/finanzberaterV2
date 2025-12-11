@@ -2,9 +2,9 @@
     <div class="popup-add-contract">
        <Popup 
            @close-popup="$emit('close-popup')"
-           @submit="addContract"
-           label="Vertrag hinzufügen"
-           submitHeadline="Hinzufügen">
+           @submit="submitContract"
+           label="Vertrag"
+           submitHeadline="Speichern">
            
            <template v-slot:form>
                <div class="contract-form">
@@ -54,25 +54,21 @@
                    <div class="form-row">
                        <div class="form-group">
                            <label>Startdatum *</label>
-                           <Calendar
-                               v-model="contract.startDate"
-                               dateFormat="dd.mm.yy"
+                           <DatePicker
+                               v-model="contract.start_date"
                                :disabled="loading"
                                placeholder="Datum auswählen"
                                :showIcon="true"
-                               appendTo="body"
                            />
                        </div>
                        
                        <div class="form-group">
                            <label>Enddatum</label>
-                           <Calendar
-                               v-model="contract.endDate"
-                               dateFormat="dd.mm.yy"
+                           <DatePicker
+                               v-model="contract.end_date"
                                :disabled="loading"
                                placeholder="Optional"
                                :showIcon="true"
-                               appendTo="body"
                            />
                        </div>
                    </div>
@@ -90,6 +86,11 @@
                            appendTo="body"
                        />
                    </div>
+                 
+                   <div class="form-group --m-b-20">
+                       <label>Wichtigkeit</label>
+                       <Slider v-model="contract.importance" class="w-56" />
+                   </div>
                    
                    <div class="form-info">
                        <small>* Pflichtfelder</small>
@@ -105,25 +106,34 @@ import Popup from './PopUp.vue';
 import InputText from 'primevue/inputtext';
 import InputNumber from 'primevue/inputnumber';
 import Textarea from 'primevue/textarea';
-import Calendar from 'primevue/calendar';
+import DatePicker from 'primevue/datepicker';
 import Dropdown from 'primevue/dropdown';
 import { supabase } from '../database.js';
+import contractManager from '../services/contractManager.js';
+import Slider from 'primevue/slider';
 
 export default {
-    name: 'Popup-AddContract',
+    name: 'Popup-FormContract',
+    props: {
+        updateItemId: {
+            type: String,
+            default: null
+        }
+    },
     data() {
         return {
             contract: {
                 company: '',
                 description: '',
                 amount: null,
-                startDate: null,
-                endDate: null,
-                scheduledPayment: 1
+                start_date: null,
+                end_date: null,
+                scheduledPayment: 1,
+                importance: 50
             },
             loading: false,
             error: null,
-            paymentDays: []
+            paymentDays: [],
         }
     },
     created() {
@@ -131,98 +141,107 @@ export default {
             label: `${i + 1}. des Monats`,
             value: i + 1
         }));
+        if (this.updateItemId != null) {
+            this.loadContract();
+        }
     },
     methods: {
-        async addContract() {
-            console.log('Adding contract:', this.contract);
-            
-            this.error = null;
-            
-            if (!this.contract.company || !this.contract.amount || !this.contract.startDate) {
-                this.error = 'Bitte füllen Sie alle Pflichtfelder aus.';
-                return;
-            }
-            
-            if (this.contract.amount <= 0) {
-                this.error = 'Der Betrag muss größer als 0 sein.';
-                return;
-            }
-            
-            if (this.contract.endDate && this.contract.endDate <= this.contract.startDate) {
-                this.error = 'Das Enddatum muss nach dem Startdatum liegen.';
-                return;
-            }
-            
+        formatDateToGerman(dateString) {
+            const date = new Date(dateString);
+            const day = String(date.getDate()).padStart(2, "0");
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const year = date.getFullYear();
+
+            return `${day}.${month}.${year}`;
+        },
+        async loadContract() {
             this.loading = true;
-            
             try {
-                const { data: { user }, error: userError } = await supabase.auth.getUser();
-                
-                if (userError || !user) {
-                    throw new Error('Sie müssen angemeldet sein, um einen Vertrag hinzuzufügen.');
-                }
-                
-                const contractData = {
-                    user_id: user.id,
-                    company: this.contract.company.trim(),
-                    description: this.contract.description ? this.contract.description.trim() : null,
-                    amount: this.contract.amount,
-                    start_date: this.formatDateForDB(this.contract.startDate),
-                    end_date: this.contract.endDate ? this.formatDateForDB(this.contract.endDate) : null,
-                    scheduled_payment: this.contract.scheduledPayment
-                };
-                
-                console.log('Inserting contract data:', contractData);
-                
-                const { data, error } = await supabase
-                    .from('contracts')
-                    .insert([contractData])
-                    .select()
-                    .single();
-                
-                if (error) {
-                    console.error('Database error:', error);
-                    throw error;
-                }
-                
-                console.log('Contract added successfully:', data);
-                
-                this.$emit('contract-added', data);
-                
-                this.$emit('close-popup');
-                
-                this.showSuccessMessage();
-                
+                this.contract = await contractManager.getContractById(this.updateItemId);
+            
+                this.contract.start_date = new Date(this.contract.start_date);
+                console.log("2",this.contract);
+
             } catch (error) {
-                console.error('Error adding contract:', error);
-                this.error = this.getErrorMessage(error);
+                console.error("Error loading contract:", error);
+                this.error = "Vertrag konnte nicht geladen werden.";
             } finally {
                 this.loading = false;
             }
         },
-        
-        formatDateForDB(date) {
-            if (!date) return null;
-            
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            
-            return `${year}-${month}-${day}`;
-        },
-        
-        getErrorMessage(error) {
-            if (error.message) {
-                if (error.message.includes('unique constraint')) {
-                    return 'Ein ähnlicher Vertrag existiert bereits.';
-                } else if (error.message.includes('foreign key')) {
-                    return 'Benutzer-Authentifizierung fehlgeschlagen.';
-                } else if (error.message.includes('check constraint')) {
-                    return 'Ungültige Eingabedaten. Bitte überprüfen Sie Ihre Eingaben.';
-                }
-                return error.message;
+        async submitContract() {
+            console.log('Adding/Updating contract:', this.contract);
+
+            this.error = null;
+
+            // --- VALIDIERUNG ---
+            if (!this.contract.company || !this.contract.amount || !this.contract.start_date) {
+                this.error = 'Bitte füllen Sie alle Pflichtfelder aus.';
+                return;
             }
-            return 'Ein unbekannter Fehler ist aufgetreten.';
+
+            if (this.contract.amount <= 0) {
+                this.error = 'Der Betrag muss größer als 0 sein.';
+                return;
+            }
+
+            if (this.contract.end_date && this.contract.end_date <= this.contract.start_date) {
+                this.error = 'Das Enddatum muss nach dem Startdatum liegen.';
+                return;
+            }
+
+            this.loading = true;
+
+            try {
+                // Benutzer prüfen
+                const { data: { user }, error: userError } = await supabase.auth.getUser();
+                if (userError || !user) {
+                    throw new Error('Sie müssen angemeldet sein, um einen Vertrag zu speichern.');
+                }
+
+                // Daten für DB formatieren
+                const contractData = {
+                    company: this.contract.company,
+                    amount: this.contract.amount,
+                    start_date: this.contract.start_date,
+                    end_date: this.contract.end_Date,
+                    user_id: user.id,
+                    importance: this.contract.importance,
+                    scheduled_payment: this.contract.scheduledPayment
+                };
+
+                let savedContract = null;
+
+                // --- UPDATE ODER CREATE ENTSCHEIDEN ---
+                if (this.updateItemId != null) {
+                    console.log("Updating contract ID:", this.updateItemId);
+
+                    savedContract = await contractManager.updateContract(
+                        this.updateItemId,
+                        contractData
+                    );
+
+                    this.$emit("contract-updated", savedContract);
+
+                } else {
+                    console.log("Creating new contract:", contractData);
+
+                    savedContract = await contractManager.createContract(contractData);
+
+                    this.$emit("contract-added", savedContract);
+                }
+
+                // Popup schließen & Erfolg anzeigen
+                this.$emit("close-popup");
+                this.showSuccessMessage();
+
+            } catch (error) {
+                console.error('Error saving contract:', error);
+                this.error = this.getErrorMessage(error);
+
+            } finally {
+                this.loading = false;
+            }
         },
         
         showSuccessMessage() {
@@ -234,9 +253,10 @@ export default {
                 company: '',
                 description: '',
                 amount: null,
-                startDate: null,
-                endDate: null,
-                scheduledPayment: 1
+                start_date: null,
+                end_date: null,
+                scheduledPayment: 1,
+                importance: 50
             };
             this.error = null;
         }
@@ -246,8 +266,9 @@ export default {
         InputText,
         InputNumber,
         Textarea,
-        Calendar,
-        Dropdown
+        DatePicker,
+        Dropdown,
+        Slider
     }
 }
 </script>

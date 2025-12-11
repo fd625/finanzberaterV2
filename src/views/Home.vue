@@ -20,15 +20,15 @@
       <div v-if="userProfile && userProfile.salary" class="salary-info">
         <div class="salary-card">
           <h3>Ihr monatliches Restgehalt</h3>
-          <div class="salary-amount">{{ formatCurrency(userProfile.salary - amountSum) }}</div>
+          <div class="salary-amount">{{ remainingSalary }}</div>
         </div>
       </div>
 
-      <contracts-table />
+      <contracts-table ref="table" @sum="x => amountSum = x" />
 
-      <popup-add-contract
+      <PopupFormContract
         v-if="showPopUp"
-        @close-popup="showPopUp = false"
+        @close-popup="closePopUp()"
         @contract-added="addContract"
       />
     </div>
@@ -36,43 +36,42 @@
 </template>
 
 <script>
-import PopupAddContract from '../PopUps/Popup-AddContract.vue';
+import PopupFormContract from '../PopUps/Popup-FormContract.vue';
 import ContractsTable from '../components/Contracts-Table.vue';
 import { mapState, mapGetters, mapActions } from 'vuex';
 
 export default {
   name: 'Home',
-  components: { PopupAddContract, ContractsTable },
+  components: { ContractsTable, PopupFormContract },
 
   data() {
     return {
       showPopUp: false,
-      amountSum: 0
+      amountSum: 0,
+
     };
   },
 
   computed: {
     ...mapState('currentUser', ['user', 'profile']),
     ...mapGetters('currentUser', ['isAuthenticated']),
+    remainingSalary() {
+        return this.formatCurrency(this.$store.getters["currentUser/remainingSalary"]);
+    },
     userProfile() {
       return this.profile;
     }
   },
-
   created() {
     // Prüfe Auth-Status und lade Profil automatisch über Store
     this.checkAuthState();
   },
-
   methods: {
     ...mapActions('currentUser', ['checkAuthState', 'logout']),
-
-    addContract(contract) {
-      // Summiere die Beträge der neuen Verträge
-      this.amountSum += contract.amount || 0;
-      // Optional: Profil könnte über Store automatisch aktualisiert werden
+    closePopUp() {
+        this.showPopUp = false;
+        this.$refs.table.loadContracts();
     },
-
     formatCurrency(amount) {
       return new Intl.NumberFormat('de-DE', {
         style: 'currency',
@@ -167,43 +166,5 @@ export default {
             }
         }
     }
-}
-
-.action-btn {
-    border: none;
-    padding: 8px;
-    border-radius: 4px;
-    cursor: pointer;
-    margin: 0 2px;
-    
-    &.delete-btn {
-        background-color: #dc3545;
-        color: white;
-        
-        &:hover {
-            background-color: #c82333;
-        }
-    }
-}
-
-.p-datatable-column-header-content,.p-datatable-tbody > tr > td {
- padding: 20px 0 !important;
-}
-.p-datatable-column-title {
-    padding-right: 15px;
-}
-.p-paginator {
-    padding: 15px 0 !important;
-}
-.p-datatable-paginator-bottom {
-    margin-top: 26px;
-    border: 1px solid grey !important;
-    border-radius: 7px;
-}
-.p-paginator-page, .p-paginator-next, .p-paginator-last, .p-paginator-first, .p-paginator-prev {
-    padding: 10px !important;
-}
-.p-select-dropdown {
-    padding-left: 13px;
 }
 </style>

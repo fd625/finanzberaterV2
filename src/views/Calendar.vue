@@ -154,8 +154,8 @@ export default {
         // Konvertiere Contracts in Calendar-Events
         this.userEvents = contracts.map(contract => ({
           title: contract.title,
-          start: new Date(contract.startDate),
-          end: new Date(contract.endDate || contract.startDate),
+          start: new Date(contract.start_date),
+          end: new Date(contract.endDate || contract.startdate),
           startTime: contract.startTime || null,
           type: contract.type || 'general',
           amount: contract.amount ? parseFloat(contract.amount) : null

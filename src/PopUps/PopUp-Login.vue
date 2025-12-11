@@ -177,7 +177,6 @@ export default {
     padding: 8px !important;
     border-radius: 3px !important;
     width: 100%;
-    margin-bottom: 10px;
     
     &:disabled {
         background-color: #f5f5f5;

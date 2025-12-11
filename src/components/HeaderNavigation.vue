@@ -4,7 +4,8 @@
     <div class="header__container">
       <div class="header__navigation">
         <RouterLink to="/" class="header__navigation__item">Finanzen</RouterLink>
-        <RouterLink to="/Kalendar" class="header__navigation__item">Kalendar</RouterLink>
+        <RouterLink to="/Statistiken" class="header__navigation__item">Statistiken</RouterLink>
+        <!-- <RouterLink to="/Kalendar" class="header__navigation__item">Kalendar</RouterLink> -->
         <RouterLink to="/BenutzerProfil" class="header__navigation__item">Profil</RouterLink>
       </div>
 

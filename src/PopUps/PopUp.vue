@@ -59,9 +59,9 @@ export default {
         justify-content: space-between;
         min-height: 370px;
         border-radius: 20px;
-        width: 400px;
+        width: 50%;
         margin: 0px auto;
-        padding: 34px;
+        padding: 26px;
         background-color: #fff;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
         transition: all 0.3s ease;
@@ -69,7 +69,7 @@ export default {
         &__header {
             display: flex;
             justify-content: space-between;
-            margin-top: 15px;
+            margin-bottom: 15px;
             &__label {
                 font-size: 21px;
             }

@@ -17,3 +17,10 @@ html, body {
 .headline {
   font-size: 26px;
 }
+
+.--m-b-20 {
+  margin-bottom: 20px !important;
+}
+.--m-b-40 {
+  margin-bottom: 40px !important;
+}
