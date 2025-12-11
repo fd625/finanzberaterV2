@@ -3,7 +3,7 @@
         <DataTable 
             :value="contracts" 
             scrollable 
-            scrollHeight="400px" 
+            scrollHeight="1000px" 
             paginator 
             :loading="loading"
             v-model:filters="filters"

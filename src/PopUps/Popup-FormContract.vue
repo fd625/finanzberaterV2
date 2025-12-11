@@ -88,7 +88,7 @@
                    </div>
                  
                    <div class="form-group --m-b-20">
-                       <label>Wichtigkeit</label>
+                       <label>Relevanz</label>
                        <Slider v-model="contract.importance" class="w-56" />
                    </div>
                    

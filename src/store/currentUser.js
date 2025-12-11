@@ -19,7 +19,13 @@ export const currentUser = {
     SET_USER(state, user) { state.user = user; },
     SET_PROFILE(state, profile) { state.profile = profile; },
     SET_LOADING(state, loading) { state.isLoading = loading; },
-    SET_REMAINING_SALARY(state, amount) { state.remainingSalary = amount; }
+    SET_REMAINING_SALARY(state, amount) { state.remainingSalary = amount; },
+    setUser(state, user) {
+      state.user = user;
+    },
+    setProfile(state, profile) {
+      state.profile = profile;
+    }
   },
   actions: {
     async checkAuthState({ commit, dispatch }) {
@@ -47,7 +53,11 @@ export const currentUser = {
         commit('SET_LOADING', false);
       }
     },
-
+    async logout({ commit }) {
+      await authManager.signOut();
+      commit("setUser", null);
+      commit("setProfile", null);
+    },
     async recalculateRemainingSalary({ state, commit }) {
       if (!state.user || !state.profile) return;
 

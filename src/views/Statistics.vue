@@ -4,7 +4,8 @@
         <h6>
             Hier bekommst du alle wichtigen Einblicke zu deinen Ausgaben, Verträgen und deinem verfügbaren Budget. Die Statistiken zeigen dir auf einen Blick, was wirklich zählt, wo dein Geld hingeht und wo Sparpotenzial steckt – übersichtlich, verständlich und immer aktuell.
         </h6>
-        <div class="card__contrainer">
+        <tipps-message-box />
+        <div class="card__container">
             <div class="card --bar">
                 <h5>Deine wichtigsten Verträge im Überblick:</h5>
                 <h6>
@@ -13,7 +14,8 @@
                 <Chart 
                     type="bar" 
                     :data="barChartData" 
-                    :options="barChartOptions" class="h-[30rem]"  
+                    :options="barChartOptions" 
+                    style="height: 350px" 
                 />
             </div>
              <div class="card --pie">
@@ -23,7 +25,7 @@
                 </h6>
                 <div style="display: flex; justify-content: center;">
                     <Chart 
-                    :style="{height: '350px'}"
+                        style="height: 350px"
                         type="pie" 
                         :data="pieChartData" 
                         :options="pieChartOptions" 
@@ -38,7 +40,8 @@
 <script>
 import Chart from 'primevue/chart';
 import contractManager from '../services/contractManager';
-import { mapGetters} from 'vuex';
+import { mapGetters, mapActions} from 'vuex';
+import tippsMessageBox from '../components/tipps-message-box.vue';
 
 export default {
     name: "Statistics",
@@ -60,7 +63,8 @@ export default {
         }
     },
     components: {
-        Chart
+        Chart,
+        tippsMessageBox
     },
     mounted() {
         this.loadContracts();
@@ -71,7 +75,11 @@ export default {
             return this.$store.getters["currentUser/remainingSalary"];
         }
     },
-    methods: {
+    created() {
+        this.checkAuthState();
+    },
+  methods: {
+        ...mapActions('currentUser', ['checkAuthState']),
         setData() {
             this.formatData();
             this.barChartData = this.setBarChartData();
@@ -86,6 +94,7 @@ export default {
                 this.pie.data.push(x.amount);
                 this.bar.data.push(x.importance);
             });
+            console.log("rest",this.remainingSalary)
             this.pie.labels.push("Restliches Gehalt");
             this.pie.data.push(this.remainingSalary);
         },
@@ -150,7 +159,7 @@ export default {
                 labels: this.bar.labels,
                 datasets: [
                     {
-                        label: 'Summe',
+                        label: 'Relevanz',
                         backgroundColor: [
                             documentStyle.getPropertyValue('--p-cyan-500'),
                             documentStyle.getPropertyValue('--p-orange-500'),
@@ -224,13 +233,15 @@ export default {
         width: 50%;
 
     }
-    &__contrainer {
+    &__container {
         display: flex;
         flex-direction: row;
+        
     }
 
 }
 h6 {
    font-weight: 400;
 }
+
 </style>

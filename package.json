@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "main": "src/electron/main.js",
   "scripts": {
+    "lint": "eslint . --ext .js,.vue",
     "dev": "vite",
     "electron": "electron .",
     "build": "vite build",
@@ -23,9 +24,14 @@
     "vuex": "^4.0.2"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.1",
     "@vitejs/plugin-vue": "^6.0.1",
+    "@vue/eslint-config-standard": "^9.0.1",
     "electron": "^38.1.0",
     "electron-builder": "^26.0.12",
+    "eslint": "^9.39.1",
+    "eslint-plugin-vue": "^10.6.2",
+    "globals": "^16.5.0",
     "sass-embedded": "^1.92.1",
     "vite": "^7.1.2"
   }

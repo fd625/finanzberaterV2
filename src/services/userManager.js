@@ -28,7 +28,6 @@ export const userManager = {
     return res.data;
   },
 
-  // Registrierung eines neuen Users
     async registerUser({ email, password, username, salary }) {
         const { data, error } = await supabase.auth.signUp({
             email,

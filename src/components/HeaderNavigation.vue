@@ -5,7 +5,6 @@
       <div class="header__navigation">
         <RouterLink to="/" class="header__navigation__item">Finanzen</RouterLink>
         <RouterLink to="/Statistiken" class="header__navigation__item">Statistiken</RouterLink>
-        <!-- <RouterLink to="/Kalendar" class="header__navigation__item">Kalendar</RouterLink> -->
         <RouterLink to="/BenutzerProfil" class="header__navigation__item">Profil</RouterLink>
       </div>
 
@@ -40,6 +39,7 @@ import 'primeicons/primeicons.css';
 import PopUpLogin from "../PopUps/PopUp-Login.vue";
 import PopUpRegister from "../PopUps/PopUp-Register.vue";
 import { RouterLink } from "vue-router";
+import { mapActions } from "vuex";
 
 export default {
   name: "HeaderNav",
@@ -74,6 +74,7 @@ export default {
   },
 
   methods: {
+    ...mapActions('currentUser', ['logout']),
     register() {
       this.showLoginModal = false;
       this.showRegisterModal = true;
@@ -86,7 +87,14 @@ export default {
     },
 
     logout() {
-      this.$store.dispatch('currentUser/logout');
+      this.$store.dispatch('currentUser/logout')
+      .then(() => {
+        // Seite neu laden
+        window.location.reload();
+      })
+      .catch(err => {
+        console.error("Logout fehlgeschlagen:", err);
+      });
     }
   }
 }

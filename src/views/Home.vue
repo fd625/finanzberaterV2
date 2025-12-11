@@ -1,12 +1,6 @@
 <template>
   <div class="home">
-    <div v-if="!isAuthenticated" class="login-prompt">
-      <h2>Willkommen bei Subvision</h2>
-      <p>Bitte melden Sie sich an, um Ihre Finanzen zu verwalten.</p>
-      <div class="login-prompt__icon">
-        <i class="pi pi-lock" style="font-size: 4rem; color: #ccc;"></i>
-      </div>
-    </div>
+    <authMessageBox v-if="!isAuthenticated" />
 
     <div v-else>
       <div class="home__header">
@@ -29,7 +23,6 @@
       <PopupFormContract
         v-if="showPopUp"
         @close-popup="closePopUp()"
-        @contract-added="addContract"
       />
     </div>
   </div>
@@ -39,10 +32,11 @@
 import PopupFormContract from '../PopUps/Popup-FormContract.vue';
 import ContractsTable from '../components/Contracts-Table.vue';
 import { mapState, mapGetters, mapActions } from 'vuex';
+import authMessageBox from '../components/auth-message-box.vue';
 
 export default {
   name: 'Home',
-  components: { ContractsTable, PopupFormContract },
+  components: { ContractsTable, PopupFormContract,authMessageBox },
 
   data() {
     return {
