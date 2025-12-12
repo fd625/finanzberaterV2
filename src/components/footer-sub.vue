@@ -51,7 +51,7 @@
     </div>
   
     <div class="footer-bottom">
-      <p>© {{ new Date().getFullYear() }} DeineSparApp – Alle Rechte vorbehalten.</p>
+      <p>© {{ new Date().getFullYear() }} SubVision – Alle Rechte vorbehalten.</p>
     </div>
   </footer>
 </template>
