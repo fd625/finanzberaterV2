@@ -24,7 +24,9 @@ describe("MyButton Component", () => {
         });
 
         const button = wrapper.find("button");
-        expect(button.attributes("style")).toContain(`background-color: ${testColor}`);
+        const style = button.attributes("style");
+        
+        expect(style).toMatch(/background-color:\s*rgb\(255,\s*0,\s*0\)/);
     });
 
     it("emits clicked event when button is clicked", async () => {
