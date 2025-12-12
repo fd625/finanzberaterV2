@@ -24,13 +24,26 @@
       class="modal-overlay"
       @click="closeModal"
     >
-      <div class="modal" @click.stop>
+      <div
+        class="modal"
+        @click.stop
+      >
         <h3>{{ currentAchievement?.title }}</h3>
         <p>Hast du dieses Achievement geschafft?</p>
 
         <div class="modal-buttons">
-          <button class="yes" @click="unlockAchievement">Ja</button>
-          <button class="no" @click="closeModal">Nein</button>
+          <button
+            class="yes"
+            @click="unlockAchievement"
+          >
+            Ja
+          </button>
+          <button
+            class="no"
+            @click="closeModal"
+          >
+            Nein
+          </button>
 
           <!-- Reset Button nur, wenn Achievement unlocked ist -->
           <button
@@ -50,49 +63,49 @@
 import { mapGetters, mapActions } from "vuex";
 
 export default {
-  name: "AchievementsView",
-  data() {
-    return {
-      showModal: false,
-      selectedId: null
-    };
-  },
-  computed: {
-    ...mapGetters("achievements", ["all", "progressPercent"]),
-    currentAchievement() {
-      if (!this.selectedId) return null;
-      return this.all.find(a => a.id === this.selectedId);
+    name: "AchievementsView",
+    data() {
+        return {
+            showModal: false,
+            selectedId: null
+        };
+    },
+    computed: {
+        ...mapGetters("achievements", ["all", "progressPercent"]),
+        currentAchievement() {
+            if (!this.selectedId) {return null;}
+            return this.all.find(a => a.id === this.selectedId);
+        }
+    },
+    created() {
+        this.$store.dispatch("achievements/load");
+    },
+    methods: {
+        ...mapActions("achievements", ["unlock", "lock"]),
+
+        openModal(id) {
+            this.selectedId = id;
+            this.showModal = true;
+        },
+        closeModal() {
+            this.showModal = false;
+            this.selectedId = null;
+        },
+
+        unlockAchievement() {
+            if (this.selectedId !== null) {
+                this.unlock(this.selectedId);
+            }
+            this.closeModal();
+        },
+
+        lockAchievement() {
+            if (this.selectedId !== null) {
+                this.lock(this.selectedId);
+            }
+            this.closeModal();
+        }
     }
-  },
-  created() {
-    this.$store.dispatch("achievements/load");
-  },
-  methods: {
-    ...mapActions("achievements", ["unlock", "lock"]),
-
-    openModal(id) {
-      this.selectedId = id;
-      this.showModal = true;
-    },
-    closeModal() {
-      this.showModal = false;
-      this.selectedId = null;
-    },
-
-    unlockAchievement() {
-      if (this.selectedId !== null) {
-        this.unlock(this.selectedId);
-      }
-      this.closeModal();
-    },
-
-    lockAchievement() {
-      if (this.selectedId !== null) {
-        this.lock(this.selectedId);
-      }
-      this.closeModal();
-    }
-  }
 };
 </script>
 
