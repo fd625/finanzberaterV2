@@ -8,125 +8,130 @@ on:
 
 jobs:
   lint:
-    name: Static Analysis (Linting)
+    name: Statische Analyse (Linting)
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout code
+      - name: Code checkout
         uses: actions/checkout@v4
       
-      - name: Setup Node.js
+      - name: Node.js setup
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
       
-      - name: Install dependencies
+      - name: Abhängigkeiten installieren
         run: npm ci
       
-      - name: Run ESLint
+      - name: ESLint ausführen
         run: npm run lint
         continue-on-error: false
       
-      - name: Upload ESLint results
+      - name: ESLint-Report generieren
+        if: always()
+        run: npm run lint:report || true
+      
+      - name: ESLint-Ergebnisse hochladen
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: eslint-results
+          name: eslint-ergebnisse
           path: eslint-report.json
+          if-no-files-found: ignore
 
   test:
-    name: Unit & Integration Tests
+    name: Unit- & Integrationstests
     runs-on: ubuntu-latest
     needs: lint
     
     steps:
-      - name: Checkout code
+      - name: Code checkout
         uses: actions/checkout@v4
       
-      - name: Setup Node.js
+      - name: Node.js einrichten
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
       
-      - name: Install dependencies
+      - name: Abhängigkeiten installieren
         run: npm ci
       
-      - name: Run tests with coverage
+      - name: Tests mit Coverage ausführen
         run: npm run test:coverage
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
       
-      - name: Upload coverage reports
+      - name: Coverage-Reports hochladen
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: coverage/
       
-      - name: Generate test summary
+      - name: Test-Zusammenfassung generieren
         if: always()
         run: |
-          echo "## Test Results" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Tests completed" >> $GITHUB_STEP_SUMMARY
+          echo "## Test-Ergebnisse" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Tests abgeschlossen" >> $GITHUB_STEP_SUMMARY
 
   build:
-    name: Build Application
+    name: Anwendung bauen
     runs-on: ubuntu-latest
     needs: test
     
     steps:
-      - name: Checkout code
+      - name: Code checkout
         uses: actions/checkout@v4
       
-      - name: Setup Node.js
+      - name: Node.js einrichten
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
       
-      - name: Install dependencies
+      - name: Abhängigkeiten installieren
         run: npm ci
       
-      - name: Build application
+      - name: Anwendung bauen
         run: npm run build
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
       
-      - name: Upload build artifacts
+      - name: Build-Artefakte hochladen
         uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist/
 
   quality-report:
-    name: Quality Report
+    name: Qualitätsbericht
     runs-on: ubuntu-latest
     needs: [lint, test, build]
     if: always()
     
     steps:
-      - name: Download all artifacts
+      - name: Alle Artefakte herunterladen
         uses: actions/download-artifact@v4
       
-      - name: Generate quality report
+      - name: Qualitätsbericht generieren
         run: |
-          echo "# Quality Assurance Report" >> report.md
+          echo "# Qualitätssicherungsbericht" >> report.md
           echo "" >> report.md
-          echo "## Static Analysis" >> report.md
-          echo "✅ ESLint checks completed" >> report.md
+          echo "## Statische Analyse" >> report.md
+          echo "✅ ESLint-Prüfungen abgeschlossen" >> report.md
           echo "" >> report.md
-          echo "## Testing" >> report.md
-          echo "✅ Unit and integration tests executed" >> report.md
+          echo "## Tests" >> report.md
+          echo "✅ Unit- und Integrationstests ausgeführt" >> report.md
           echo "" >> report.md
           echo "## Build" >> report.md
-          echo "✅ Application built successfully" >> report.md
+          echo "✅ Anwendung erfolgreich gebaut" >> report.md
       
-      - name: Upload quality report
+      - name: Qualitätsbericht hochladen
         uses: actions/upload-artifact@v4
         with:
-          name: quality-report
+          name: qualitaetsbericht
           path: report.md

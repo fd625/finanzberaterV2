@@ -30,7 +30,7 @@ export default [
             }],
             "no-debugger": "error",
       
-            // Vue Specific
+            // Vue
             "vue/multi-word-component-names": ["error", {
                 "ignores": ["Home", "Profile", "Statistics", "Impressum", "FAQ"]
             }],
