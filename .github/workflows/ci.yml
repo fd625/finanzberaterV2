@@ -78,7 +78,7 @@ jobs:
           echo "✅ Tests abgeschlossen" >> $GITHUB_STEP_SUMMARY
 
   build:
-    name: Anwendung bauen
+    name: Build
     runs-on: ubuntu-latest
     needs: test
     
@@ -95,7 +95,7 @@ jobs:
       - name: Abhängigkeiten installieren
         run: npm ci
       
-      - name: Anwendung bauen
+      - name: Build auführen
         run: npm run build
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
