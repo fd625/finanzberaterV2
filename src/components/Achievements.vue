@@ -1,7 +1,7 @@
 <template>
   <div class="achievements-container">
     <h2>Deine Spar-Achievements</h2>
-  
+
     <div class="cards">
       <div
         v-for="achievement in all"
@@ -17,82 +17,85 @@
         <p>{{ achievement.description }}</p>
       </div>
     </div>
-  
+
     <!-- MODAL -->
     <div
       v-if="showModal"
       class="modal-overlay"
       @click="closeModal"
     >
-      <div
-        class="modal"
-        @click.stop
-      >
+      <div class="modal" @click.stop>
         <h3>{{ currentAchievement?.title }}</h3>
         <p>Hast du dieses Achievement geschafft?</p>
-  
+
         <div class="modal-buttons">
+          <button class="yes" @click="unlockAchievement">Ja</button>
+          <button class="no" @click="closeModal">Nein</button>
+
+          <!-- Reset Button nur, wenn Achievement unlocked ist -->
           <button
-            class="yes"
-            @click="unlockAchievement"
+            v-if="currentAchievement?.unlocked"
+            class="reset"
+            @click="lockAchievement"
           >
-            Ja
-          </button>
-          <button
-            class="no"
-            @click="closeModal"
-          >
-            Nein
+            Zurücksetzen
           </button>
         </div>
       </div>
     </div>
   </div>
 </template>
-  
+
 <script>
 import { mapGetters, mapActions } from "vuex";
-  
+
 export default {
-    name: "AchievementsView",
-    data() {
-        return {
-            showModal: false,
-            selectedId: null
-        };
-    },
-    computed: {
-        ...mapGetters("achievements", ["all", "progressPercent"]),
-        currentAchievement() {
-            if (!this.selectedId) {
-                return null;
-            }
-            return this.all.find(a => a.id === this.selectedId);
-        }
-    },
-    created() {
-        this.$store.dispatch("achievements/load");
-    },
-    methods: {
-        ...mapActions("achievements", ["unlock"]),
-        openModal(id) {
-            this.selectedId = id;
-            this.showModal = true;
-        },
-        closeModal() {
-            this.showModal = false;
-            this.selectedId = null;
-        },
-        unlockAchievement() {
-            if (this.selectedId !== null) {
-                this.unlock(this.selectedId);
-            }
-            this.closeModal();
-        }
+  name: "AchievementsView",
+  data() {
+    return {
+      showModal: false,
+      selectedId: null
+    };
+  },
+  computed: {
+    ...mapGetters("achievements", ["all", "progressPercent"]),
+    currentAchievement() {
+      if (!this.selectedId) return null;
+      return this.all.find(a => a.id === this.selectedId);
     }
+  },
+  created() {
+    this.$store.dispatch("achievements/load");
+  },
+  methods: {
+    ...mapActions("achievements", ["unlock", "lock"]),
+
+    openModal(id) {
+      this.selectedId = id;
+      this.showModal = true;
+    },
+    closeModal() {
+      this.showModal = false;
+      this.selectedId = null;
+    },
+
+    unlockAchievement() {
+      if (this.selectedId !== null) {
+        this.unlock(this.selectedId);
+      }
+      this.closeModal();
+    },
+
+    lockAchievement() {
+      if (this.selectedId !== null) {
+        this.lock(this.selectedId);
+      }
+      this.closeModal();
+    }
+  }
 };
 </script>
-  
+
 <style lang="scss" scoped>
 .achievements-container {
   width: 100%;
@@ -148,7 +151,6 @@ export default {
   }
 }
 
-/* MODAL */
 .modal-overlay {
   position: fixed;
   top: 0; left: 0;
@@ -187,6 +189,13 @@ export default {
     color: white;
     border: none;
   }
-}
 
+  .reset {
+    background: #888;
+    padding: 10px 20px;
+    border-radius: 8px;
+    color: white;
+    border: none;
+  }
+}
 </style>
