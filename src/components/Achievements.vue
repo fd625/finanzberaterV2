@@ -32,18 +32,21 @@
         <p>Hast du dieses Achievement geschafft?</p>
 
         <div class="modal-buttons">
-          <button
-            class="yes"
-            @click="unlockAchievement"
-          >
-            Ja
-          </button>
-          <button
-            class="no"
-            @click="closeModal"
-          >
-            Nein
-          </button>
+            <button
+              class="yes"
+              @click="unlockAchievement"
+              v-if="!currentAchievement?.unlocked"
+            >
+              Ja
+            </button>
+            <button
+              class="no"
+              @click="closeModal"
+              v-if="!currentAchievement?.unlocked"
+            >
+              Nein
+            </button>
+
 
           <!-- Reset Button nur, wenn Achievement unlocked ist -->
           <button
